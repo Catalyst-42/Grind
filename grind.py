@@ -22,35 +22,38 @@ open        - открыть ресурс
 up [name]   - улучшение
 '''
 
-res_time = {'seconds': 10,
-            'minutes': 17,
-            'hours': 1,
+res_time = {'seconds': 0,
+            'minutes': 0,
+            'hours': 0,
             'wait_minutes': 0,
             'wait_hours': 0}
 
 res_stone = {'name': 'Камень',
-             'count': 50,
-             'storage': 100,
+             'count': 0,
              'price': 1,
+             'price_start': 1,
+             'up_cost': 10,
+             'storage': 100,
              'per_s': 0.5,
-             'up_cost': 100,
-             'level': 0}
+             'level': 1}
 
 res_wood = {'name': 'Дерево',
-             'count': 100,
-             'storage': 100,
+             'count': 0,
              'price': 5,
-             'per_s': 0.5,
+             'price_start': 5,
              'up_cost': 100,
-             'level': 0}
+             'storage': 100,
+             'per_s': 0.5,
+             'level': 1}
 
 res_coal = {'name': 'Уголь',
              'count': 0,
+             'price': 50,
+             'price_start': 50,
+             'up_cost': 500,
              'storage': 100,
-             'price': 10,
              'per_s': 0.5,
-             'up_cost': 100,
-             'level': 0}
+             'level': 1}
 
 index = {'Камень': 0,
          'Дерево': 1,
@@ -59,8 +62,13 @@ index = {'Камень': 0,
 buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева']
 res_all = []
 
+res_time['seconds'] += 1000
+res_time['minutes'] += 20
+res_time['hours'] += 10
+res_stone['count'] += 100
+
 # extension
-def pointed_number(number):
+def pn(number):
     number = round(number)
     if number >= 1000:
         iteration = 3
@@ -74,7 +82,7 @@ def pointed_number(number):
     else: return str(number)
 
 def gap(name):
-    return (' ' * (15 - len(pointed_number(name))))
+    return (' ' * (15 - len(pn(name))))
 
 def draw_storage(count, max_count):
     percents = round(count / max_count * 100)
@@ -124,13 +132,12 @@ def sell(move):
 # functions
 def draw_header():
     os.system('clear')
-    print('Секунды   :', pointed_number(res_time['seconds']), gap(res_time['seconds']) + '| Профиль :', name)
-    print('Минуты    :', pointed_number(res_time['minutes']), gap(res_time['minutes']) + '| Уровень :', pointed_number(level))
-    print('Часы      :', pointed_number(res_time['hours']), gap(res_time['hours']) + '| $       :', pointed_number(money))
+    print('Секунды   :', pn(res_time['seconds']), gap(res_time['seconds']) + '| Профиль :', name)
+    print('Минуты    :', pn(res_time['minutes']), gap(res_time['minutes']) + '| Уровень :', pn(level))
+    print('Часы      :', pn(res_time['hours']), gap(res_time['hours']) + '| Деньги  :', pn(money) + '$')
 
 def draw_buy():
     if buy[0] <= 3 + 1:
-        print('\n' + buy[buy[0]])
         buy[1] = 0
         if buy[0] == 2:
             if res_time['seconds'] >= 10 and res_time['minutes'] >= 1:
@@ -141,12 +148,13 @@ def draw_buy():
         if buy[0] == 4:
             if res_time['hours'] >= 1 and res_all[1]['count'] >= 100:
                 buy[1] = 1
+        if buy[1] == 1: print('\n' + buy[buy[0]])
 
 def draw_res():
     if res_all:
         print('')
         for i in res_all:
-            print(draw_name(i['name']), pointed_number(i['count']), gap(i['count']) + '|', draw_storage(i['count'], i['storage']), upgradable(i['up_cost']), pointed_number(i['price'] * i['count']) + '$')
+            print(draw_name(i['name']), pn(i['count']), gap(i['count']) + '|', draw_storage(i['count'], i['storage']), upgradable(i['up_cost']), pn(i['price'] * i['count']) + '$')
 
 # game loops
 def progress():
@@ -193,10 +201,12 @@ def game_render():
             os.system('clear')
             os._exit(1)
             move = ['']
+        
         elif move[0] == 'help':
             os.system('clear')
             print(help_text)
             move = input('\nДействие  : ').split(' ')
+        
         elif move[0] == 'open' and buy[1] == 1:
             if buy[0] == 2:
                 res_time['seconds'] -= 10
@@ -216,9 +226,49 @@ def game_render():
             buy[1] == 0
             buy[0] += 1
             move = ['']
+        
         elif move[0] == 'sell' and move[-1] != 'sell':
             sell(move[1])
             move = ['']
+
+        elif move[0] == 'up':
+            i = 0
+            loop = 1
+            try: 
+                res_id = index[move[1]]
+                i = res_all[res_id]
+                
+            except Exception:
+                try:
+                    i = res_all[int(move[1]) - 1]
+                except Exception: pass
+            try:
+                if move[2] == 'max': loop = 'max'
+                else: loop = int(move[2])
+            except Exception: pass
+            if i:
+                while 1:
+                    if money >= i['up_cost']:
+                        money -= i['up_cost']
+                        # увеличение цены продажи
+                        i['level'] += 1
+                        i['price'] +=  i['price_start']
+                        if i['level'] % 100 == 0:
+                            i['price_start'] *= 2
+                            i['price'] *= 2
+                            i['up_cost'] *= 1.4
+                        # увеличение стоимости улучшени]
+                        i['up_cost'] *= 1.07
+                        # увеличение хранилища
+                        i['storage'] = i['price'] * i['level'] * 2
+                        # увеличение ресурсов в секунду
+                        i['per_s'] += 0.1
+                        if loop != 'max': 
+                            loop -=1
+                            if loop <= 0: break
+                    else: break
+            move = ['']
+
         elif move != ['']: # res stats
             i = 0
             try: 
@@ -232,14 +282,21 @@ def game_render():
                     os.system('clear')
                     print(move[0]+'.', i['name'] + '\n')
                 except Exception: pass
-            try:
-                print('Колличество :', pointed_number(i['count']), '\nХранилище   :', i['storage'],'\nСтоимость 1 :', pointed_number(i['price']) + '$', '\nВ секунду   :', i['per_s'], '\nУровень     :', pointed_number(i['level']), '\n\nУлучшение', upgradable(i['up_cost']),'\nВ секунду   :', '???')
-            except Exception: pass
-            
-            if i != 0:
+            if i:
+                print('Колличество :', pn(i['count']), '\nХранилище   :', i['storage'],'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', pn(i['per_s']), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
+                if money >= i['up_cost']: print('\033[32m', end='')
+                else: print('\033[31m', end='')
+                if i['level'] % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']))
+                else: print('Стоимость 1 :', '+' + str(i['price_start']))
+                print('В секунду   :', '+0.1')
+                print('Хранилище   :', '+' + pn(i['price']*i['level']*2))
+                print('\nЦена улучшения :', pn(i['up_cost']) + '$')
+                print('\033[0m', end='')
+
                 move = input('\nДействие  : ').split(' ')
-            
             else: move = ['']
+
+            
 
 time_l = Thread(target=progress)
 render_l = Thread(target=game_render)
