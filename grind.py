@@ -24,7 +24,7 @@ up [name]   - улучшение
 
 res_time = {'seconds': 10,
             'minutes': 17,
-            'hours': 0,
+            'hours': 1,
             'wait_minutes': 0,
             'wait_hours': 0}
 
@@ -37,17 +37,26 @@ res_stone = {'name': 'Камень',
              'level': 0}
 
 res_wood = {'name': 'Дерево',
-             'count': 0,
+             'count': 100,
              'storage': 100,
              'price': 5,
-             'per_s': 0.2,
+             'per_s': 0.5,
+             'up_cost': 100,
+             'level': 0}
+
+res_coal = {'name': 'Уголь',
+             'count': 0,
+             'storage': 100,
+             'price': 10,
+             'per_s': 0.5,
              'up_cost': 100,
              'level': 0}
 
 index = {'Камень': 0,
-         'Дерево': 1}
+         'Дерево': 1,
+         'Уголь': 2}
 
-buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней']
+buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева']
 res_all = []
 
 # extension
@@ -91,18 +100,26 @@ def draw_name(name):
 
 def sell(move):
     global money
+    res_id = -1
     if move == 'all':
         for i in res_all:
             money += i['count'] * i['price']
             i['count'] = 0
-
-    if move == 'Камень' or move == '1' and len(res_all) >= 1:
-        money += res_all[0]['count'] * res_all[0]['price']
-        res_all[0]['count'] = 0
+    else:
+        for i in index:
+            if move == i:
+                res_id = index[i]
+                break
     
-    if move == 'Дерево' or move == '2' and len(res_all) >= 2:
-        money += res_all[1]['count'] * res_all[1]['price']
-        res_all[1]['count'] = 0
+        for i in index:
+            i = index[i]
+            if move == str(i + 1):
+                res_id = int(i)
+                break
+
+        if len(res_all) > res_id and res_id != -1:
+            money += res_all[res_id]['count'] * res_all[res_id]['price']
+            res_all[res_id]['count'] = 0
 
 # functions
 def draw_header():
@@ -112,7 +129,7 @@ def draw_header():
     print('Часы      :', pointed_number(res_time['hours']), gap(res_time['hours']) + '| $       :', pointed_number(money))
 
 def draw_buy():
-    if buy[0] <= 2 + 1:
+    if buy[0] <= 3 + 1:
         print('\n' + buy[buy[0]])
         buy[1] = 0
         if buy[0] == 2:
@@ -120,6 +137,9 @@ def draw_buy():
                 buy[1] = 1
         if buy[0] == 3:
             if res_time['minutes'] >= 10 and res_all[0]['count'] >= 50:
+                buy[1] = 1
+        if buy[0] == 4:
+            if res_time['hours'] >= 1 and res_all[1]['count'] >= 100:
                 buy[1] = 1
 
 def draw_res():
@@ -138,12 +158,12 @@ def progress():
         res_time['seconds'] += 1
 
         if res_time['wait_minutes'] == 60:
-            res_time['minutes'] += 1  
             res_time['wait_minutes'] = 0
+            res_time['minutes'] += 1  
 
-        if res_time['wait_minutes'] == 3600:
-            res_time['hours'] += 1  
+        if res_time['wait_hours'] == 3600:
             res_time['wait_hours'] = 0  
+            res_time['hours'] += 1  
 
         if res_all:
             for i in res_all:
@@ -187,6 +207,12 @@ def game_render():
                 res_time['minutes'] -= 10
                 res_all[0]['count'] -= 50
                 res_all.append(res_wood)
+
+            if buy[0] == 4:
+                res_time['hours'] -= 1
+                res_all[1]['count'] -= 100
+                res_all.append(res_coal)
+
             buy[1] == 0
             buy[0] += 1
             move = ['']
