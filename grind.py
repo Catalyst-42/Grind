@@ -7,6 +7,8 @@ game_exit = 0
 money = 0
 level = 0
 move = ['']
+i = 0
+page = 'main'
 
 help_text = '''Команды
 
@@ -20,6 +22,7 @@ stats       - статистика
 sell [name] - продать ресурс
 open        - открыть ресурс
 up [name]   - улучшение
+main        - венуться на главную станицу
 '''
 
 res_time = {'seconds': 0,
@@ -62,10 +65,10 @@ index = {'Камень': 0,
 buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева']
 res_all = []
 
-res_time['seconds'] += 1000
-res_time['minutes'] += 20
-res_time['hours'] += 10
-res_stone['count'] += 100
+# res_time['seconds'] += 1000
+# res_time['minutes'] += 20
+# res_time['hours'] += 10
+# res_stone['count'] += 100
 
 # extension
 def pn(number):
@@ -129,6 +132,37 @@ def sell(move):
             money += res_all[res_id]['count'] * res_all[res_id]['price']
             res_all[res_id]['count'] = 0
 
+def res_stat():
+    global move
+    i = 0
+    try: 
+        res_id = index[move[0]]
+        i = res_all[res_id]
+        os.system('clear')
+        print(str(res_id+1)+'.', move[0] + '\n')
+    except Exception:
+        try:
+            i = res_all[int(move[0]) - 1]
+            os.system('clear')
+            print(move[0]+'.', i['name'] + '\n')
+        except Exception: pass
+    if i:
+        print('Колличество :', pn(i['count']), '\nХранилище   :', i['storage'],'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', i['per_s'], '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
+        if money >= i['up_cost']: print('\033[32m', end='')
+        else: print('\033[31m', end='')
+        if i['level'] % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']))
+        else: print('Стоимость 1 :', '+' + str(i['price_start']))
+        print('В секунду   :', '+' + str(i['price_start']))
+        if i['level'] % 100 == 0: print('Хранилище   :', '+' + pn(i['level'] * 3))
+        else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
+        print('\nЦена улучшения :', pn(i['up_cost']) + '$')
+        print('\033[0m', end='')
+
+        i['storage'] += i['level'] * 1.5
+
+        move = input('\nДействие  : ').split(' ')
+
+    else: move = ['']
 # functions
 def draw_header():
     os.system('clear')
@@ -193,8 +227,6 @@ def game_render():
 
         if move == ['']:
             move = input('\nДействие  : ').split(' ')
-        else:
-            print('\nДействие  :', move[0])
 
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
             game_exit = 1
@@ -253,14 +285,16 @@ def game_render():
                         # увеличение цены продажи
                         i['level'] += 1
                         i['price'] +=  i['price_start']
+                        # бонус в 100 уровней
                         if i['level'] % 100 == 0:
                             i['price_start'] *= 2
                             i['price'] *= 2
                             i['up_cost'] *= 1.4
+                            i['storage'] *= 2
                         # увеличение стоимости улучшени]
                         i['up_cost'] *= 1.07
                         # увеличение хранилища
-                        i['storage'] = i['price'] * i['level'] * 2
+                        i['storage'] += i['level'] * 1.5
                         # увеличение ресурсов в секунду
                         i['per_s'] += 0.1
                         if loop != 'max': 
@@ -268,35 +302,9 @@ def game_render():
                             if loop <= 0: break
                     else: break
             move = ['']
-
+        
         elif move != ['']: # res stats
-            i = 0
-            try: 
-                res_id = index[move[0]]
-                i = res_all[res_id]
-                os.system('clear')
-                print(str(res_id+1)+'.', move[0] + '\n')
-            except Exception:
-                try:
-                    i = res_all[int(move[0]) - 1]
-                    os.system('clear')
-                    print(move[0]+'.', i['name'] + '\n')
-                except Exception: pass
-            if i:
-                print('Колличество :', pn(i['count']), '\nХранилище   :', i['storage'],'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', pn(i['per_s']), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
-                if money >= i['up_cost']: print('\033[32m', end='')
-                else: print('\033[31m', end='')
-                if i['level'] % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']))
-                else: print('Стоимость 1 :', '+' + str(i['price_start']))
-                print('В секунду   :', '+0.1')
-                print('Хранилище   :', '+' + pn(i['price']*i['level']*2))
-                print('\nЦена улучшения :', pn(i['up_cost']) + '$')
-                print('\033[0m', end='')
-
-                move = input('\nДействие  : ').split(' ')
-            else: move = ['']
-
-            
+            res_stat()
 
 time_l = Thread(target=progress)
 render_l = Thread(target=game_render)

@@ -28,7 +28,7 @@ def pn(number):
 
 print('level:', level, "\nup_price:", pn(up_price), 'nps:', pn(nps),'Storage:', storage, 'Scale', pn(up_price / nps), '\nSumm:', pn(all_price), '\n')
 
-for i in range(100):
+for i in range(101):
     # увеличение цены
     level += 1
     nps = nps + nps_start
@@ -36,10 +36,11 @@ for i in range(100):
         nps_start *= 2
         nps *= 2
         up_price *= 1.4
+        storage *= 2
     # увеличение прибыли
     up_price *= 1.07
     #увеличение хранилища
-    storage = nps * level * 2
+    storage += level * 1.5
     # счет суммы
     all_price += up_price
 
