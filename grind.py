@@ -9,6 +9,7 @@ level = 0
 move = ['']
 i = 0
 page = 'main'
+previous = ''
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -194,17 +195,18 @@ def sell(move):
             res_all[res_id]['count'] = 0
 
 def res_stat():
-    global move
+    global move, page, previous
     i = 0
+    if page != 'main': move[0] = page
     try: 
+        os.system('clear')
         res_id = index[move[0]]
         i = res_all[res_id]
-        os.system('clear')
         print(str(res_id+1)+'.', move[0] + '\n')
     except Exception:
         try:
-            i = res_all[int(move[0]) - 1]
             os.system('clear')
+            i = res_all[int(move[0]) - 1]
             print(move[0]+'.', i['name'] + '\n')
         except Exception: pass
     if i:
@@ -219,9 +221,7 @@ def res_stat():
         print('\nЦена улучшения :', pn(i['up_cost']) + '$')
         print('\033[0m', end='')
 
-        i['storage'] += i['level'] * 1.5
-
-        move = input('\nДействие  : ').split(' ')
+        page = i['name']
 
     else: move = ['']
 # functions
@@ -281,27 +281,41 @@ def progress():
 
 def game_render():
     while 1:
-        global money, move, name
+        global money, move, name, page, previous
 
-        draw_header()
-        draw_res()
-        draw_buy()
+        if page == 'main':
+            draw_header()
+            draw_res()
+            draw_buy()
+        
+        else:
+            res_stat()
 
-        if move == ['']:
-            move = input('\nДействие  : ').split(' ')
+        move = input('\nДействие : ').split(' ')
+        i = 0
+        try: 
+            res_id = index[move[0]]
+            i = res_all[res_id]
+        except Exception:
+            try:
+                i = res_all[int(move[0]) - 1]
+            except Exception: pass
+        if i != 0:
+            if page != i['name']:
+                page = 'main'
+        
 
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
             game_exit = 1
             os.system('clear')
             os._exit(1)
-            move = ['']
         
-        elif move[0] == 'help':
+        if move[0] == 'help':
             os.system('clear')
             print(help_text)
-            move = input('\nДействие  : ').split(' ')
+            move = input('\nДействие : ').split(' ')
         
-        elif move[0] == 'open' and buy[1] == 1:
+        if move[0] == 'open' and buy[1] == 1:
             if buy[0] == 2:
                 res_time['seconds'] -= 10
                 res_time['minutes'] -= 1
@@ -319,13 +333,11 @@ def game_render():
 
             buy[1] == 0
             buy[0] += 1
-            move = ['']
         
-        elif move[0] == 'sell' and move[-1] != 'sell':
+        if move[0] == 'sell' and move[-1] != 'sell':
             sell(move[1])
-            move = ['']
 
-        elif move[0] == 'up':
+        if move[0] == 'up':
             i = 0
             loop = 1
             try: 
@@ -363,15 +375,14 @@ def game_render():
                             loop -=1
                             if loop <= 0: break
                     else: break
-            move = ['']
         
-        elif move[0] == 'name':
+        if move[0] == 'name':
             name = move[1]
-            move = ['']
+        
+        if move[0] == 'main':
+            page = 'main'
 
-        elif move != ['']: # res stats
-            res_stat()
-
+        res_stat()
 
 time_l = Thread(target=progress)
 render_l = Thread(target=game_render)
