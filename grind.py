@@ -10,20 +10,81 @@ move = ['']
 i = 0
 page = 'main'
 
-help_text = '''Команды
+help_text = '''\033[35mКоманды\033[0m
 
-Команда     - Действие
-help        - список действий
-enter       - обновить экран
-exit        - сохранить игру и выйти
-save        - сохранить игру
-stats       - статистика
-[name]      - показать данные ресурса
-sell [name] - продать ресурс
-open        - открыть ресурс
-up [name]   - улучшение
-main        - венуться на главную станицу
-'''
+\033[36mhelp\033[0m
+выводит список доступных команд, где 
+наименования в скобках - число или имя
+прдмета, сами скобки указывать не надо.
+        
+пример вида команды и его исполнение
+\033[36mup [id] [level]\033[0m
+\033[36mup 1 10\033[0m
+улучшить первый предмет на 10 уровней
+
+пример сокращенного имени
+\033[36mexit\033[0m
+\033[36me\033[0m
+кажда из команд будет выполнять одну,
+указанную в описании функцию
+
+
+\033[36menter\033[0m
+обновление текущего экрана, допустимо 
+нажатие клавиши enter
+
+\033[36mexit\033[0m
+\033[36me\033[0m
+выйти из игры, сохранив ее
+
+\033[36msave\033[0m
+сохранить игру
+
+\033[36mstats\033[0m
+показать общую статистику игры
+
+\033[36m[name]\033[0m
+\033[36m[id]\033[0m
+показать данные ресурса, его id,
+число ресурсов, цену одного ресурса,
+цену улучшения и его бонусы
+
+\033[36msell [name]\033[0m
+\033[36msell [id]\033[0m
+продать весь указанный ресурс, 
+допустим ключь all в поле id для 
+продажи всех ресурсов
+
+\033[36mopen\033[0m
+открыть ресурс, если у вас хватает 
+ресурсов для открытия, после колонки 
+откртых ресурсов появиться стоимость покупки
+
+\033[36mup [name] [level]\033[0m
+\033[36mup [id] [level]\033[0m
+улучшение уровня ресурса,
+допустим ключ max для улучшения 
+на максимальный возможный уровень 
+ресурса или пустой ключ в значение 
+level для улучшения на 1 уровень
+
+\033[36mmain\033[0m
+венуться на главную станицу
+
+\033[36mname [name]\033[0m
+изменить имя профиля, допустим ввод
+любых символов кроме пробела, рекомендуемо 
+использовать имя профиля меньше 24 символов
+
+\033[35mСправка\033[0m
+
+Игра не обновляется динамически, управляется 
+командами, значения которых разделяются пробелами,
+enter для подтверждения ввода
+
+Создал: Catalyst
+Версия: alpha 0.3
+1 билд: 23.01.2021'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -65,10 +126,10 @@ index = {'Камень': 0,
 buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева']
 res_all = []
 
-# res_time['seconds'] += 1000
-# res_time['minutes'] += 20
-# res_time['hours'] += 10
-# res_stone['count'] += 100
+res_time['seconds'] += 1000
+res_time['minutes'] += 20
+res_time['hours'] += 10
+res_stone['count'] += 100
 
 # extension
 def pn(number):
@@ -85,7 +146,7 @@ def pn(number):
     else: return str(number)
 
 def gap(name):
-    return (' ' * (15 - len(pn(name))))
+    return (' ' * (17 - len(pn(name))))
 
 def draw_storage(count, max_count):
     percents = round(count / max_count * 100)
@@ -101,10 +162,10 @@ def draw_storage(count, max_count):
 
     return out+'] ' + str(percents) + '%' + ' ' * (3 - len(str(percents)))
 
-def upgradable(up_cost):
-    if money >= up_cost:
-        return '|\033[32mo\033[0m|'
-    else: return '|\033[31mx\033[0m|'
+def upgradable(up_cost, level):
+    level = str(level)
+    if money >= up_cost: return '\033[32ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
+    else: return '\033[31ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
 
 def draw_name(name):
     return name + ' ' * (10 - len(name)) + ':'
@@ -147,13 +208,13 @@ def res_stat():
             print(move[0]+'.', i['name'] + '\n')
         except Exception: pass
     if i:
-        print('Колличество :', pn(i['count']), '\nХранилище   :', i['storage'],'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', i['per_s'], '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
+        print('Колличество :', pn(i['count']), '\nХранилище   :', pn(round(i['storage'])),'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', round(i['per_s'], 2), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
         if money >= i['up_cost']: print('\033[32m', end='')
         else: print('\033[31m', end='')
         if i['level'] % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']))
         else: print('Стоимость 1 :', '+' + str(i['price_start']))
         print('В секунду   :', '+' + str(i['price_start']))
-        if i['level'] % 100 == 0: print('Хранилище   :', '+' + pn(i['level'] * 3))
+        if i['level'] % 50 == 0: print('Хранилище   :', '+' + pn(i['level'] * 3))
         else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
         print('\nЦена улучшения :', pn(i['up_cost']) + '$')
         print('\033[0m', end='')
@@ -188,11 +249,11 @@ def draw_res():
     if res_all:
         print('')
         for i in res_all:
-            print(draw_name(i['name']), pn(i['count']), gap(i['count']) + '|', draw_storage(i['count'], i['storage']), upgradable(i['up_cost']), pn(i['price'] * i['count']) + '$')
+            print(draw_name(i['name']), draw_storage(i['count'], i['storage']), '|',  upgradable(i['up_cost'], i['level']), pn(i['price'] * i['count']) + '$')
 
 # game loops
 def progress():
-    global res_time
+    global res_time, level
     while 1:
         time.sleep(1)
         res_time['wait_minutes'] += 1     
@@ -205,7 +266,8 @@ def progress():
 
         if res_time['wait_hours'] == 3600:
             res_time['wait_hours'] = 0  
-            res_time['hours'] += 1  
+            res_time['hours'] += 1
+            level += 1
 
         if res_all:
             for i in res_all:
@@ -219,7 +281,7 @@ def progress():
 
 def game_render():
     while 1:
-        global money, move
+        global money, move, name
 
         draw_header()
         draw_res()
@@ -290,7 +352,7 @@ def game_render():
                             i['price_start'] *= 2
                             i['price'] *= 2
                             i['up_cost'] *= 1.4
-                            i['storage'] *= 2
+                        if i['level'] % 50 == 0: i['storage'] *= 2
                         # увеличение стоимости улучшени]
                         i['up_cost'] *= 1.07
                         # увеличение хранилища
@@ -303,8 +365,13 @@ def game_render():
                     else: break
             move = ['']
         
+        elif move[0] == 'name':
+            name = move[1]
+            move = ['']
+
         elif move != ['']: # res stats
             res_stat()
+
 
 time_l = Thread(target=progress)
 render_l = Thread(target=game_render)
