@@ -1,6 +1,7 @@
 import time
 import os
 from threading import Thread
+import os.path
 
 name = 'Catalyst'
 game_exit = 0
@@ -69,12 +70,18 @@ help_text = '''\033[35mКоманды\033[0m
 level для улучшения на 1 уровень
 
 \033[36mmain\033[0m
+\033[36mm\033[0m
 венуться на главную станицу
 
 \033[36mname [name]\033[0m
 изменить имя профиля, допустим ввод
 любых символов кроме пробела, рекомендуемо 
 использовать имя профиля меньше 24 символов
+
+\033[36mdelete save [name]\033[0m
+Удалить сохранение, в качестве подтверждения 
+укажите актуальное имя игрока, восстановить 
+данные невозможно
 
 \033[35mСправка\033[0m
 
@@ -83,8 +90,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: alpha 0.3
-1 билд: 23.01.2021'''
+Версия: release 1.0'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -173,16 +179,21 @@ index = {'Камень': 0,
          'Золото': 6,
          'Уран': 7}
 
-buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева', 'Ткань    : 1 секунда', 'Медь   : 1 секунда', 'Железо   : 1 символическая секунда', 'Золото   : 1', 'Уран  : 1 0 0 1' ]
+buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 
+             'Дерево    : 10 минут; 50 камней', 
+             'Уголь     : 1 час; 100 дерева', 
+             'Ткань     : 1 секунда', 
+             'Медь      : 1 секунда', 
+             'Железо    : 1 символическая секунда', 
+             'Золото    : 1', 
+             'Уран      : 1 0 0 1']
+
 res_all = []
 
-res_time['seconds'] += 1000
-res_time['minutes'] += 20
-res_time['hours'] += 10
-res_stone['count'] += 100
-res_wood['count'] += 100
-
 # extension
+def draw_name(name):
+    return name + ' ' * (10 - len(name)) + ':'
+
 def pn(number):
     number = round(number)
     if number >= 1000:
@@ -217,9 +228,6 @@ def upgradable(up_cost, level):
     level = str(level)
     if money >= up_cost: return '\033[32ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
     else: return '\033[31ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
-
-def draw_name(name):
-    return name + ' ' * (10 - len(name)) + ':'
 
 def sell(move):
     global money
@@ -263,17 +271,134 @@ def res_stat():
         print('Колличество :', pn(i['count']), '\nХранилище   :', pn(round(i['storage'])),'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', round(i['per_s'], 2), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
         if money >= i['up_cost']: print('\033[32m', end='')
         else: print('\033[31m', end='')
-        if i['level'] % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']))
-        else: print('Стоимость 1 :', '+' + str(i['price_start']))
-        print('В секунду   :', '+' + str(i['price_start']))
-        if i['level'] % 50 == 0: print('Хранилище   :', '+' + pn(i['level'] * 3))
+        if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage']))
         else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
+        if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']*2))
+        else: print('Стоимость 1 :', '+' + str(i['price_start']))
+        print('В секунду   :', '+0.1')
         print('\nЦена улучшения :', pn(i['up_cost']) + '$')
         print('\033[0m', end='')
 
         page = i['name']
 
     else: move = ['']
+
+# save and load
+def save_res_update(res, offset):
+    offset = offset * 7
+    res['count'] = float(save[10 + offset])
+    res['price'] = int(save[11 + offset])
+    res['price_start'] = int(save[12 + offset])
+    res['up_cost'] = float(save[13 + offset])
+    res['storage'] = float(save[14 + offset])
+    res['per_s'] = float(save[15 + offset])
+    res['level'] = int(save[16 + offset])
+
+if os.path.exists('./save.dat'):
+    with open('save.dat', 'r') as f:
+        save = f.read().splitlines()
+        
+        name = save[0]
+        money = float(save[1])
+        level = int(save[2])
+
+        # offline encounter
+        timestamp = float(save[3])
+
+        res_time['seconds'] = int(save[4])
+        res_time['minutes'] = float(save[5])
+        res_time['hours'] = int(save[6])
+
+        res_time['wait_minutes'] = int(save[7])
+        res_time['wait_hours'] = int(save[8])
+        save[8] = int(save[9])
+
+        # res loop
+        buy[0] = save[8]
+        if save[8]-2 >= 1:
+            save_res_update(res_stone, 0)
+            res_all.append(res_stone)
+        if save[8]-2 >= 2:
+            save_res_update(res_wood, 1)
+            res_all.append(res_wood)
+        if save[8]-2 >= 3:
+            save_res_update(res_coal, 2)
+            res_all.append(res_coal)
+        if save[8]-2 >= 4:
+            save_res_update(res_fabric, 3)
+            res_all.append(res_fabric)
+        if save[8]-2 >= 5:
+            save_res_update(res_copper, 4)
+            res_all.append(res_copper)
+        if save[8]-2 >= 6:
+            save_res_update(res_steel, 5)
+            res_all.append(res_steel)
+        if save[8]-2 >= 7:
+            save_res_update(res_gold, 6)
+            res_all.append(res_gold)
+        if save[8]-2 >= 8:
+            save_res_update(res_uranium, 7)
+            res_all.append(res_uranium)
+
+        # offline encounter
+        os.system('clear')
+        timestamp = time.time() - timestamp
+        timestamp = round(timestamp)
+        print('С возвращением, ' + name + '\nВас не было в игре:\n')
+        offline_sec = timestamp
+        offline_min = 0
+        offline_hrs = 0
+
+        while offline_sec - 3600 >= 1:
+            offline_hrs += 1
+            offline_sec -= 3600
+
+        while offline_sec - 60 >= 1:
+            offline_min += 1
+            offline_sec -= 60
+        
+        print('Секунд:', offline_sec)
+        print('Минут :', offline_min)
+        print('Часов :', offline_hrs)
+        print('\nВы получили:\n')
+        print(draw_name('Секунд'), pn(timestamp))
+        print(draw_name('Минут'), timestamp//60)
+        print(draw_name('Часов'), timestamp//3600)
+        for i in res_all:
+            if i['per_s'] * timestamp + i['count'] < i['storage']: print(draw_name(i['name']), '+' + pn(i['per_s'] * timestamp))
+            else: print(draw_name(i['name']), '+' + pn(i['storage'] - i['count']))
+            res_all[index[i['name']]]['count'] += i['per_s'] * timestamp 
+            if i['count'] > i['storage']:i['count'] = i['storage']
+
+        res_time['seconds'] += timestamp
+        res_time['minutes'] += round(timestamp/60)
+        res_time['hours'] += round(timestamp/3600)
+
+
+        move = input('\nДействие  : ').split(' ')
+
+def save_game():
+    with open('save.dat', 'w') as f:
+        f.write(name + '\n')
+        f.write(str(money) + '\n')
+        f.write(str(level)  + '\n')
+        f.write(str(time.time()) + '\n')
+        f.write(str(res_time['seconds'])  + '\n')
+        f.write(str(res_time['minutes'])  + '\n')
+        f.write(str(res_time['hours'])  + '\n')
+        f.write(str(res_time['wait_minutes'])  + '\n')
+        f.write(str(res_time['wait_hours'])  + '\n')
+        f.write(str(buy[0])  + '\n')
+
+        for i in res_all:
+            f.write(str(i['count'])  + '\n')
+            f.write(str(i['price'])  + '\n')
+            f.write(str(i['price_start'])  + '\n')
+            f.write(str(i['up_cost'])  + '\n')
+            f.write(str(i['storage'])  + '\n')
+            f.write(str(i['per_s'])  + '\n')
+            f.write(str(i['level'])  + '\n')
+
 # functions
 def draw_header():
     os.system('clear')
@@ -356,7 +481,7 @@ def game_render():
         else:
             res_stat()
 
-        move = input('\nДействие : ').split(' ')
+        move = input('\nДействие  : ').split(' ')
         i = 0
         try: 
             res_id = index[move[0]]
@@ -369,8 +494,8 @@ def game_render():
             if page != i['name']:
                 page = 'main'
         
-
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
+            save_game()
             game_exit = 1
             os.system('clear')
             os._exit(1)
@@ -381,46 +506,50 @@ def game_render():
             move = input('\nДействие : ').split(' ')
         
         if move[0] == 'open' and buy[1] == 1:
-            if buy[1] == 2:
+            if buy[0] == 2:
                 res_time['seconds'] -= 11
                 res_time['minutes'] -= 2
                 res_all.append(res_stone)
 
-            if buy[1] == 3:
+            if buy[0] == 3:
                 res_time['minutes'] -= 11
-                res_all[1]['count'] -= 50
+                res_all[0]['count'] -= 50
                 res_all.append(res_wood)
 
-            if buy[1] == 4:
+            if buy[0] == 4:
                 res_time['hours'] -= 2
-                res_all[2]['count'] -= 100
+                res_all[1]['count'] -= 100
                 res_all.append(res_coal)
 
-            if buy[1] == 5:
-                res_time['seconds'] -= 2
+            if buy[0] == 5:
+                res_time['seconds'] -= 1
                 res_all.append(res_fabric)
 
-            if buy[1] == 6:
-                res_time['seconds'] -= 2
+            if buy[0] == 6:
+                res_time['seconds'] -= 1
                 res_all.append(res_copper)
 
-            if buy[1] == 7:
-                res_time['seconds'] -= 2
+            if buy[0] == 7:
+                res_time['seconds'] -= 1
                 res_all.append(res_steel)
 
-            if buy[1] == 8:
-                res_time['seconds'] -= 2
+            if buy[0] == 8:
+                res_time['seconds'] -= 1
                 res_all.append(res_gold)
 
-            buy[2] == 0
-            buy[1] += 1
-        
-        if move[1] == 'sell' and move[-1] != 'sell':
-            sell(move[2])
+            if buy[0] == 9:
+                res_time['seconds'] -= 1
+                res_all.append(res_uranium)
 
-        if move[1] == 'up':
-            i = 1
-            loop = 2
+            buy[1] == 0
+            buy[0] += 1
+        
+        if move[0] == 'sell' and len(move) > 1:
+            sell(move[1])
+
+        if move[0] == 'up' and len(move) > 1:
+            i = 0
+            loop = 1
             try: 
                 res_id = index[move[1]]
                 i = res_all[res_id]
@@ -437,11 +566,12 @@ def game_render():
                 while 1:
                     if money >= i['up_cost']:
                         money -= i['up_cost']
-                        # увеличение цены продажи
                         i['level'] += 1
+                        # увеличение цены продажи
                         i['price'] +=  i['price_start']
                         # бонус в 100 уровней
                         if i['level'] % 100 == 0:
+                            i['price'] +=  i['price_start']
                             i['price_start'] *= 2
                             i['price'] *= 2
                             i['up_cost'] *= 1.4
@@ -460,8 +590,14 @@ def game_render():
         if move[0] == 'name':
             name = move[1]
         
-        if move[0] == 'main':
+        if move[0] == 'main' or move[0] == 'm':
             page = 'main'
+
+        if move[0] == 'save' or move[0] == 's':
+            save_game()
+
+        if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
+            os.system('rm ./save.dat')
 
         res_stat()
 
