@@ -29,7 +29,6 @@ help_text = '''\033[35mКоманды\033[0m
 кажда из команд будет выполнять одну,
 указанную в описании функцию
 
-
 \033[36menter\033[0m
 обновление текущего экрана, допустимо 
 нажатие клавиши enter
@@ -120,17 +119,68 @@ res_coal = {'name': 'Уголь',
              'per_s': 0.5,
              'level': 1}
 
+res_fabric = {'name': 'Ткань',
+              'count': 0,
+              'price': 100,
+              'price_start': 100,
+              'up_cost': 1000,
+              'storage': 100,
+              'per_s': 0.5,
+              'level': 1}
+
+res_copper = {'name': 'Медь',
+              'count': 0,
+              'price': 200,
+              'price_start': 200,
+              'up_cost': 2000,
+              'storage': 100,
+              'per_s': 0.5,
+              'level': 1}
+
+res_steel = {'name': 'Железо',
+             'count': 0,
+             'price': 500,
+             'price_start': 500,
+             'up_cost': 4000,
+             'storage': 100,
+             'per_s': 0.5,
+             'level': 1}
+
+res_gold = {'name': 'Золото',
+            'count': 0,
+            'price': 1000,
+            'price_start': 1000,
+            'up_cost': 10000,
+            'storage': 100,
+            'per_s': 0.5,
+            'level': 1}
+
+res_uranium = {'name': 'Уран',
+               'count': 0,
+               'price': 2000,
+               'price_start': 2000,
+               'up_cost': 50000,
+               'storage': 100,
+               'per_s': 0.5,
+               'level': 1}
+
 index = {'Камень': 0,
          'Дерево': 1,
-         'Уголь': 2}
+         'Уголь': 2,
+         'Ткань': 3,
+         'Медь': 4,
+         'Железо': 5,
+         'Золото': 6,
+         'Уран': 7}
 
-buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева']
+buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 'Дерево    : 10 минут; 50 камней', 'Уголь     : 1 час; 100 дерева', 'Ткань    : 1 секунда', 'Медь   : 1 секунда', 'Железо   : 1 символическая секунда', 'Золото   : 1', 'Уран  : 1 0 0 1' ]
 res_all = []
 
 res_time['seconds'] += 1000
 res_time['minutes'] += 20
 res_time['hours'] += 10
 res_stone['count'] += 100
+res_wood['count'] += 100
 
 # extension
 def pn(number):
@@ -232,7 +282,7 @@ def draw_header():
     print('Часы      :', pn(res_time['hours']), gap(res_time['hours']) + '| Деньги  :', pn(money) + '$')
 
 def draw_buy():
-    if buy[0] <= 3 + 1:
+    if buy[0] <= 9:
         buy[1] = 0
         if buy[0] == 2:
             if res_time['seconds'] >= 10 and res_time['minutes'] >= 1:
@@ -242,6 +292,21 @@ def draw_buy():
                 buy[1] = 1
         if buy[0] == 4:
             if res_time['hours'] >= 1 and res_all[1]['count'] >= 100:
+                buy[1] = 1
+        if buy[0] == 5:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 6:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 7:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 8:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 9:
+            if res_time['seconds'] >= 1:
                 buy[1] = 1
         if buy[1] == 1: print('\n' + buy[buy[0]])
 
@@ -316,30 +381,46 @@ def game_render():
             move = input('\nДействие : ').split(' ')
         
         if move[0] == 'open' and buy[1] == 1:
-            if buy[0] == 2:
-                res_time['seconds'] -= 10
-                res_time['minutes'] -= 1
+            if buy[1] == 2:
+                res_time['seconds'] -= 11
+                res_time['minutes'] -= 2
                 res_all.append(res_stone)
 
-            if buy[0] == 3:
-                res_time['minutes'] -= 10
-                res_all[0]['count'] -= 50
+            if buy[1] == 3:
+                res_time['minutes'] -= 11
+                res_all[1]['count'] -= 50
                 res_all.append(res_wood)
 
-            if buy[0] == 4:
-                res_time['hours'] -= 1
-                res_all[1]['count'] -= 100
+            if buy[1] == 4:
+                res_time['hours'] -= 2
+                res_all[2]['count'] -= 100
                 res_all.append(res_coal)
 
-            buy[1] == 0
-            buy[0] += 1
-        
-        if move[0] == 'sell' and move[-1] != 'sell':
-            sell(move[1])
+            if buy[1] == 5:
+                res_time['seconds'] -= 2
+                res_all.append(res_fabric)
 
-        if move[0] == 'up':
-            i = 0
-            loop = 1
+            if buy[1] == 6:
+                res_time['seconds'] -= 2
+                res_all.append(res_copper)
+
+            if buy[1] == 7:
+                res_time['seconds'] -= 2
+                res_all.append(res_steel)
+
+            if buy[1] == 8:
+                res_time['seconds'] -= 2
+                res_all.append(res_gold)
+
+            buy[2] == 0
+            buy[1] += 1
+        
+        if move[1] == 'sell' and move[-1] != 'sell':
+            sell(move[2])
+
+        if move[1] == 'up':
+            i = 1
+            loop = 2
             try: 
                 res_id = index[move[1]]
                 i = res_all[res_id]
