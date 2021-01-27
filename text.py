@@ -1,4 +1,4 @@
-i = {''' level = 1
+level = 1
 nps = 1
 up_price = 10
 storage = 100
@@ -44,4 +44,4 @@ for i in range(171):
     # счет суммы
     all_price += up_price
 
-    print('level:', level, "\nup_price:", pn(up_price), 'nps:', pn(nps),'Storage:', pn(storage), 'Scale', pn(up_price / nps), '\nSumm:', pn(all_price), '\n')''': 0}
+    print('level:', level, "\nup_price:", pn(up_price), 'nps:', pn(nps),'Storage:', pn(storage), 'Scale', pn(up_price / nps), '\nSumm:', pn(all_price), '\n')

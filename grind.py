@@ -10,7 +10,6 @@ level = 0
 move = ['']
 i = 0
 page = 'start'
-previous = ''
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -40,9 +39,6 @@ help_text = '''\033[35mКоманды\033[0m
 
 \033[36msave\033[0m
 сохранить игру
-
-\033[36mstats\033[0m
-показать общую статистику игры
 
 \033[36m[name]\033[0m
 \033[36m[id]\033[0m
@@ -90,7 +86,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.0'''
+Версия: release 1.1 fabric copper'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -183,10 +179,10 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Дерево    : 10 минут; 50 камней', 
              'Уголь     : 5 часов; 30,000 дерева', 
              'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
-             'Медь      : 15 часов;  50,000 ткани', 
-             'Железо    : 1 символическая секунда', 
-             'Золото    : 1', 
-             'Уран      : 1 0 0 1']
+             'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
+             'Железо    : unset', 
+             'Золото    : unset', 
+             'Уран      : unset']
 
 res_all = []
 
@@ -316,30 +312,11 @@ if os.path.exists('./save.dat'):
 
         # res loop
         buy[0] = save[8]
-        if save[8]-2 >= 1:
-            save_res_update(res_stone, 0)
-            res_all.append(res_stone)
-        if save[8]-2 >= 2:
-            save_res_update(res_wood, 1)
-            res_all.append(res_wood)
-        if save[8]-2 >= 3:
-            save_res_update(res_coal, 2)
-            res_all.append(res_coal)
-        if save[8]-2 >= 4:
-            save_res_update(res_fabric, 3)
-            res_all.append(res_fabric)
-        if save[8]-2 >= 5:
-            save_res_update(res_copper, 4)
-            res_all.append(res_copper)
-        if save[8]-2 >= 6:
-            save_res_update(res_steel, 5)
-            res_all.append(res_steel)
-        if save[8]-2 >= 7:
-            save_res_update(res_gold, 6)
-            res_all.append(res_gold)
-        if save[8]-2 >= 8:
-            save_res_update(res_uranium, 7)
-            res_all.append(res_uranium)
+        for i in range(buy[0] - 2):
+            j = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium]
+            save_res_update(j[i], i)
+            res_all.append(j[i])
+
 
         # offline encounter
         os.system('clear')
@@ -367,7 +344,7 @@ if os.path.exists('./save.dat'):
         else: print(draw_name('Минут'), timestamp//60)
         if timestamp//3600>=1000: print(draw_name('Часов'), pn(timestamp//3600))
         else: print(draw_name('Часов'), timestamp//3600)
-        print(draw_name('Уровней'), timestamp//3600)
+        print(draw_name('Уровней'), timestamp//3600, end='\n\n')
         for i in res_all:
             if i['per_s'] * timestamp + i['count'] < i['storage']: print(draw_name(i['name']), pn(i['per_s'] * timestamp))
             else: print('\033[31m'+draw_name(i['name']), pn(i['storage'] - i['count']) + '\033[0m')
@@ -430,7 +407,7 @@ def draw_buy():
             if res_time['minutes'] >= 600 and res_all[2]['count'] >= 10000 and money >= 100000000:
                 buy[1] = 1
         if buy[0] == 6:
-            if res_time['hours'] >= 15 and  res_all[3]['count'] >= 50000:
+            if res_time['hours'] >= 15 and  res_all[3]['count'] >= 50000 and money >= 10000000000:
                 buy[1] = 1
         if buy[0] == 7:
             if res_time['seconds'] >= 1:
@@ -479,7 +456,7 @@ def progress():
 
 def game_render():
     while 1:
-        global money, move, name, page, previous
+        global money, move, name, page
 
         if page == 'main':
             draw_header()
@@ -514,48 +491,50 @@ def game_render():
             print(help_text)
             move = input('\nДействие : ').split(' ')
         
-        if move[0] == 'open' and buy[1] == 1:
-            if buy[0] == 2:
-                res_time['seconds'] -= 10
-                res_time['minutes'] -= 1
-                res_all.append(res_stone)
+        if move[0] == 'open':
+            if buy[1] == 1:
+                if buy[0] == 2:
+                    res_time['seconds'] -= 10
+                    res_time['minutes'] -= 1
+                    res_all.append(res_stone)
 
-            if buy[0] == 3:
-                res_time['minutes'] -= 10
-                res_all[0]['count'] -= 50
-                res_all.append(res_wood)
+                if buy[0] == 3:
+                    res_time['minutes'] -= 10
+                    res_all[0]['count'] -= 50
+                    res_all.append(res_wood)
 
-            if buy[0] == 4:
-                res_time['hours'] -= 5
-                res_all[1]['count'] -= 30000
-                res_all.append(res_coal)
+                if buy[0] == 4:
+                    res_time['hours'] -= 5
+                    res_all[1]['count'] -= 30000
+                    res_all.append(res_coal)
 
-            if buy[0] == 5:
-                res_time['minutes'] -= 600
-                money -= 100000000
-                res_all[2]['count'] -= 10000
-                res_all.append(res_fabric)
+                if buy[0] == 5:
+                    res_time['minutes'] -= 600
+                    money -= 100000000
+                    res_all[2]['count'] -= 10000
+                    res_all.append(res_fabric)
 
-            if buy[0] == 6:
-                res_time['hours'] -= 15
-                res_all[3]['count'] -= 50000
-                res_all.append(res_copper)
+                if buy[0] == 6:
+                    res_time['hours'] -= 15
+                    res_all[3]['count'] -= 50000
+                    res_all.append(res_copper)
 
-            if buy[0] == 7:
-                res_time['seconds'] -= 1
-                res_all.append(res_steel)
+                if buy[0] == 7:
+                    res_time['seconds'] -= 1
+                    res_all.append(res_steel)
 
-            if buy[0] == 8:
-                res_time['seconds'] -= 1
-                res_all.append(res_gold)
+                if buy[0] == 8:
+                    res_time['seconds'] -= 1
+                    res_all.append(res_gold)
 
-            if buy[0] == 9:
-                res_time['seconds'] -= 1
-                res_all.append(res_uranium)
+                if buy[0] == 9:
+                    res_time['seconds'] -= 1
+                    res_all.append(res_uranium)
+                buy[1] == 0
+                buy[0] += 1
 
-            buy[1] == 0
-            buy[0] += 1
-        
+            else: print('\033[31m' + buy[buy[0]] + '\033[0m'); move = input().split(' ')
+
         if move[0] == 'sell' and len(move) > 1:
             sell(move[1])
 
@@ -574,6 +553,7 @@ def game_render():
                 if move[2] == 'max': loop = 'max'
                 else: loop = int(move[2])
             except Exception: pass
+            
             if i:
                 while 1:
                     if money >= i['up_cost']:
@@ -607,7 +587,7 @@ def game_render():
 
         if move[0] == 'save' or move[0] == 's':
             save_game()
-
+        
         if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
             os.system('rm ./save.dat')
 
@@ -616,8 +596,4 @@ def game_render():
 time_l = Thread(target=progress)
 render_l = Thread(target=game_render)
 
-time_l.start()
-render_l.start()
-
-time_l.join()
-render_l.join()
+time_l.start(); render_l.start(); time_l.join(); render_l.join()
