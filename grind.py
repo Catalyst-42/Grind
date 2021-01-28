@@ -166,6 +166,24 @@ res_uranium = {'name': 'Уран',
                'per_s': 0.5,
                'level': 1}
 
+res_klit = {'name': 'Крмнелит',
+            'count': 0,
+            'price': 5000,
+            'price_start': 5000,
+            'up_cost': 100000,
+            'storage': 100,
+            'per_s': 0.5,
+            'level': 1}
+
+res_chromium = {'name': 'Хром',
+               'count': 0,
+               'price': 10000,
+               'price_start': 10000,
+               'up_cost': 500000,
+               'storage': 100,
+               'per_s': 0.5,
+               'level': 1}
+
 index = {'Камень': 0,
          'Дерево': 1,
          'Уголь': 2,
@@ -173,16 +191,20 @@ index = {'Камень': 0,
          'Медь': 4,
          'Железо': 5,
          'Золото': 6,
-         'Уран': 7}
+         'Уран': 7,
+         'Кремнелит': 8,
+         'Хром': 9}
 
 buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 
              'Дерево    : 10 минут; 50 камней', 
              'Уголь     : 5 часов; 30,000 дерева', 
              'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
              'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
-             'Железо    : unset', 
+             'Железо    : 24 часа', 
              'Золото    : unset', 
-             'Уран      : unset']
+             'Уран      : unset',
+             'Кремнелит : unset',
+             'Хром      : unset']
 
 res_all = []
 
@@ -313,7 +335,7 @@ if os.path.exists('./save.dat'):
         # res loop
         buy[0] = save[8]
         for i in range(buy[0] - 2):
-            j = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium]
+            j = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium, res_klit, res_chromium]
             save_res_update(j[i], i)
             res_all.append(j[i])
 
@@ -410,12 +432,18 @@ def draw_buy():
             if res_time['hours'] >= 15 and  res_all[3]['count'] >= 50000 and money >= 10000000000:
                 buy[1] = 1
         if buy[0] == 7:
-            if res_time['seconds'] >= 1:
+            if res_time['hours'] >= 24:
                 buy[1] = 1
         if buy[0] == 8:
             if res_time['seconds'] >= 1:
                 buy[1] = 1
         if buy[0] == 9:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 10:
+            if res_time['seconds'] >= 1:
+                buy[1] = 1
+        if buy[0] == 11:
             if res_time['seconds'] >= 1:
                 buy[1] = 1
         if buy[1] == 1: print('\n' + buy[buy[0]])
@@ -517,10 +545,11 @@ def game_render():
                 if buy[0] == 6:
                     res_time['hours'] -= 15
                     res_all[3]['count'] -= 50000
+                    money -= 10000000000
                     res_all.append(res_copper)
 
                 if buy[0] == 7:
-                    res_time['seconds'] -= 1
+                    res_time['hours'] -= 24
                     res_all.append(res_steel)
 
                 if buy[0] == 8:
@@ -530,7 +559,16 @@ def game_render():
                 if buy[0] == 9:
                     res_time['seconds'] -= 1
                     res_all.append(res_uranium)
-                buy[1] == 0
+
+                if buy[0] == 10:
+                    res_time['seconds'] -= 1
+                    res_all.append(res_klit)
+
+                if buy[0] == 11:
+                    res_time['seconds'] -= 1
+                    res_all.append(res_chromium)
+
+                buy[1] = 0
                 buy[0] += 1
 
             else: print('\033[31m' + buy[buy[0]] + '\033[0m'); move = input().split(' ')
