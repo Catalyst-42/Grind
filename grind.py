@@ -414,7 +414,7 @@ def draw_header():
     print('Часы      :', pn(res_time['hours']), gap(res_time['hours']) + '| Деньги  :', pn(money) + '$')
 
 def draw_buy():
-    if buy[0] <= 9:
+    if buy[0] <= 11:
         buy[1] = 0
         if buy[0] == 2:
             if res_time['seconds'] >= 10 and res_time['minutes'] >= 1:
@@ -519,7 +519,7 @@ def game_render():
             print(help_text)
             move = input('\nДействие : ').split(' ')
         
-        if move[0] == 'open':
+        if move[0] == 'open' and buy[0] < len(index) + 2:
             if buy[1] == 1:
                 if buy[0] == 2:
                     res_time['seconds'] -= 10
