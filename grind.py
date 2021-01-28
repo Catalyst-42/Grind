@@ -166,7 +166,7 @@ res_uranium = {'name': 'Уран',
                'per_s': 0.5,
                'level': 1}
 
-res_klit = {'name': 'Крмнелит',
+res_klit = {'name': 'Кремнелит',
             'count': 0,
             'price': 5000,
             'price_start': 5000,
@@ -200,7 +200,7 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Уголь     : 5 часов; 30,000 дерева', 
              'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
              'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
-             'Железо    : 24 часа', 
+             'Железо    : 24 часа; 1,000,000,000,000$', 
              'Золото    : unset', 
              'Уран      : unset',
              'Кремнелит : unset',
@@ -432,7 +432,7 @@ def draw_buy():
             if res_time['hours'] >= 15 and  res_all[3]['count'] >= 50000 and money >= 10000000000:
                 buy[1] = 1
         if buy[0] == 7:
-            if res_time['hours'] >= 24:
+            if res_time['hours'] >= 24 and money >= 1000000000000:
                 buy[1] = 1
         if buy[0] == 8:
             if res_time['seconds'] >= 1:
@@ -550,6 +550,7 @@ def game_render():
 
                 if buy[0] == 7:
                     res_time['hours'] -= 24
+                    money -= 1000000000000
                     res_all.append(res_steel)
 
                 if buy[0] == 8:
@@ -606,7 +607,7 @@ def game_render():
                             i['price'] *= 2
                             i['up_cost'] *= 1.4
                         if i['level'] % 50 == 0: i['storage'] *= 2
-                        # увеличение стоимости улучшени]
+                        # увеличение стоимости улучшения
                         i['up_cost'] *= 1.07
                         # увеличение хранилища
                         i['storage'] += i['level'] * 1.5
