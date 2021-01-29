@@ -48,6 +48,7 @@ help_text = '''\033[35mКоманды\033[0m
 
 \033[36msell [name]\033[0m
 \033[36msell [id]\033[0m
+\033[36msa\033[0m
 продать весь указанный ресурс, 
 допустим ключь all в поле id для 
 продажи всех ресурсов
@@ -86,7 +87,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.1 fabric copper'''
+Версия: release 1.4 fix'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -273,6 +274,7 @@ def sell(move):
 def res_stat():
     global move, page, previous
     i = 0
+    if move[0].isalpha(): move[0] =  move[0].capitalize()
     if page != 'main': move[0] = page
     try: 
         os.system('clear')
@@ -574,7 +576,8 @@ def game_render():
 
             else: print('\033[31m' + buy[buy[0]] + '\033[0m'); move = input().split(' ')
 
-        if move[0] == 'sell' and len(move) > 1:
+        if (move[0] == 'sell'  and len(move) > 1) or move[0] == 'sa':
+            if move[0] == 'sa': move = ['sell', 'all']
             sell(move[1])
 
         if move[0] == 'up' and len(move) > 1:
