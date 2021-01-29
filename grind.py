@@ -50,8 +50,9 @@ help_text = '''\033[35mКоманды\033[0m
 \033[36msell [id]\033[0m
 \033[36msa\033[0m
 продать весь указанный ресурс, 
-допустим ключь all в поле id для 
-продажи всех ресурсов
+допустим ключь all или просто 
+сокращение sa в поле id для 
+продажи всех ресурсов 
 
 \033[36mopen\033[0m
 открыть ресурс, если у вас хватает 
@@ -201,7 +202,7 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Уголь     : 5 часов; 30,000 дерева', 
              'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
              'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
-             'Железо    : 24 часа; 1,000,000,000,000$', 
+             'Железо    : 24 часа; 100,000,000,000$', 
              'Золото    : unset', 
              'Уран      : unset',
              'Кремнелит : unset',
@@ -272,20 +273,19 @@ def sell(move):
             res_all[res_id]['count'] = 0
 
 def res_stat():
+    draw_header()
     global move, page, previous
     i = 0
     if move[0].isalpha(): move[0] =  move[0].capitalize()
     if page != 'main': move[0] = page
     try: 
-        os.system('clear')
         res_id = index[move[0]]
         i = res_all[res_id]
-        print(str(res_id+1)+'.', move[0] + '\n')
+        print('\n' + str(res_id+1) + '.', move[0] + ' \n')
     except Exception:
         try:
-            os.system('clear')
             i = res_all[int(move[0]) - 1]
-            print(move[0]+'.', i['name'] + '\n')
+            print('\n' + move[0] + '.', i['name'] + ' \n')
         except Exception: pass
     if i:
         print('Колличество :', pn(i['count']), '\nХранилище   :', pn(round(i['storage'])),'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', round(i['per_s'], 2), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
@@ -434,7 +434,7 @@ def draw_buy():
             if res_time['hours'] >= 15 and  res_all[3]['count'] >= 50000 and money >= 10000000000:
                 buy[1] = 1
         if buy[0] == 7:
-            if res_time['hours'] >= 24 and money >= 1000000000000:
+            if res_time['hours'] >= 24 and money >= 100000000000:
                 buy[1] = 1
         if buy[0] == 8:
             if res_time['seconds'] >= 1:
@@ -452,7 +452,7 @@ def draw_buy():
 
 def draw_res():
     if res_all:
-        print('')
+        print('\nРесурсы\n')
         for i in res_all:
             print(draw_name(i['name']), draw_storage(i['count'], i['storage']), '|',  upgradable(i['up_cost'], i['level']), pn(i['price'] * i['count']) + '$')
 
@@ -552,7 +552,7 @@ def game_render():
 
                 if buy[0] == 7:
                     res_time['hours'] -= 24
-                    money -= 1000000000000
+                    money -= 100000000000
                     res_all.append(res_steel)
 
                 if buy[0] == 8:
@@ -581,6 +581,7 @@ def game_render():
             sell(move[1])
 
         if move[0] == 'up' and len(move) > 1:
+            if move[1].isalpha(): move[1] =  move[1].capitalize()
             i = 0
             loop = 1
             try: 
