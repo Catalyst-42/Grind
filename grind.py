@@ -203,7 +203,7 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
              'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
              'Железо    : 24 часа; 100,000,000,000$', 
-             'Золото    : unset', 
+             'Золото    : 300,000 секунд; 500,000,000,000$', 
              'Уран      : unset',
              'Кремнелит : unset',
              'Хром      : unset']
@@ -437,7 +437,7 @@ def draw_buy():
             if res_time['hours'] >= 24 and money >= 100000000000:
                 buy[1] = 1
         if buy[0] == 8:
-            if res_time['seconds'] >= 1:
+            if res_time['seconds'] >= 300000 and money >= 500000000000:
                 buy[1] = 1
         if buy[0] == 9:
             if res_time['seconds'] >= 1:
@@ -556,7 +556,8 @@ def game_render():
                     res_all.append(res_steel)
 
                 if buy[0] == 8:
-                    res_time['seconds'] -= 1
+                    res_time['seconds'] -= 300000
+                    money -= 500000000000
                     res_all.append(res_gold)
 
                 if buy[0] == 9:
