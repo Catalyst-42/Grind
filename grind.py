@@ -73,7 +73,7 @@ level для улучшения на 1 уровень
 
 \033[36mname [name]\033[0m
 изменить имя профиля, допустим ввод
-любых символов кроме пробела, рекомендуемо 
+любых символов кроме пробела, рекомендуется 
 использовать имя профиля меньше 24 символов
 
 \033[36mdelete save [name]\033[0m
@@ -88,7 +88,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.4 fix'''
+Версия: release 1.6 fix'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -204,8 +204,8 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
              'Железо    : 24 часа; 100,000,000,000$', 
              'Золото    : 300,000 секунд; 500,000,000,000$', 
-             'Уран      : unset',
-             'Кремнелит : unset',
+             'Уран      : 1 секунда; 1,000,000,000,000$',
+             'Кремнелит : 100 часов, 10,000,000,000,000$',
              'Хром      : unset']
 
 res_all = []
@@ -276,7 +276,7 @@ def res_stat():
     draw_header()
     global move, page, previous
     i = 0
-    if move[0].isalpha(): move[0] =  move[0].capitalize()
+    if move[0].isalpha(): move[0] = move[0].capitalize()
     if page != 'main': move[0] = page
     try: 
         res_id = index[move[0]]
@@ -440,10 +440,10 @@ def draw_buy():
             if res_time['seconds'] >= 300000 and money >= 500000000000:
                 buy[1] = 1
         if buy[0] == 9:
-            if res_time['seconds'] >= 1:
+            if res_time['seconds'] >= 1 and money >= 1000000000000:
                 buy[1] = 1
         if buy[0] == 10:
-            if res_time['seconds'] >= 1:
+            if res_time['hours'] >= 100 and money >= 10000000000000:
                 buy[1] = 1
         if buy[0] == 11:
             if res_time['seconds'] >= 1:
@@ -562,10 +562,12 @@ def game_render():
 
                 if buy[0] == 9:
                     res_time['seconds'] -= 1
+                    money -= 1000000000000
                     res_all.append(res_uranium)
 
                 if buy[0] == 10:
-                    res_time['seconds'] -= 1
+                    res_time['hours'] -= 100
+                    money -= 10000000000000
                     res_all.append(res_klit)
 
                 if buy[0] == 11:
