@@ -205,8 +205,8 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Железо    : 24 часа; 100,000,000,000$', 
              'Золото    : 300,000 секунд; 500,000,000,000$', 
              'Уран      : 1 секунда; 1,000,000,000,000$',
-             'Кремнелит : 100 часов, 10,000,000,000,000$',
-             'Хром      : unset']
+             'Кремнелит : 200 часов, 10,000,000,000,000$',
+             'Хром      : 800,000 секунд; 150,000 Золота; 150,000 Урана;\n            150,000 Кремнелита']
 
 res_all = []
 
@@ -443,10 +443,10 @@ def draw_buy():
             if res_time['seconds'] >= 1 and money >= 1000000000000:
                 buy[1] = 1
         if buy[0] == 10:
-            if res_time['hours'] >= 100 and money >= 10000000000000:
+            if res_time['hours'] >= 200 and money >= 10000000000000:
                 buy[1] = 1
         if buy[0] == 11:
-            if res_time['seconds'] >= 1:
+            if res_time['seconds'] >= 800000 and res_all[6]['count'] >= 150000 and res_all[7]['count'] >= 150000 and res_all[8]['count'] >= 150000:
                 buy[1] = 1
         if buy[1] == 1: print('\n' + buy[buy[0]])
 
@@ -566,12 +566,15 @@ def game_render():
                     res_all.append(res_uranium)
 
                 if buy[0] == 10:
-                    res_time['hours'] -= 100
+                    res_time['hours'] -= 200
                     money -= 10000000000000
                     res_all.append(res_klit)
 
                 if buy[0] == 11:
-                    res_time['seconds'] -= 1
+                    res_time['seconds'] -= 800000
+                    res_all[6]['count'] -= 150000
+                    res_all[7]['count'] -= 150000
+                    res_all[8]['count'] -= 150000
                     res_all.append(res_chromium)
 
                 buy[1] = 0
