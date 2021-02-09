@@ -9,7 +9,9 @@ money = 0
 level = 0
 move = ['']
 i = 0
-page = 'start'
+page = 'main'
+timestamp = time.time()
+dev_mode = 0
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -93,6 +95,7 @@ enter для подтверждения ввода
 res_time = {'seconds': 0,
             'minutes': 0,
             'hours': 0,
+            'wait_seconds': 0,
             'wait_minutes': 0,
             'wait_hours': 0}
 
@@ -206,7 +209,7 @@ buy = [2, 0, 'Камень    : 1 минута; 10 секунд',
              'Золото    : 300,000 секунд; 500,000,000,000$', 
              'Уран      : 1 секунда; 1,000,000,000,000$',
              'Кремнелит : 200 часов, 10,000,000,000,000$',
-             'Хром      : 800,000 секунд; 150,000 Золота; 150,000 Урана;\n            150,000 Кремнелита']
+             'Хром      : 1,000,000 секунд; 150,000 Золота; 150,000 Урана;\n            150,000 Кремнелита']
 
 res_all = []
 
@@ -302,7 +305,7 @@ def res_stat():
 
         page = i['name']
 
-    else: move = ['']
+    else: move = ['']; page = 'main'
 
 # save and load
 def save_res_update(res, offset):
@@ -330,8 +333,8 @@ if os.path.exists('./save.dat'):
         res_time['minutes'] = float(save[5])
         res_time['hours'] = int(save[6])
 
-        res_time['wait_minutes'] = int(save[7])
-        res_time['wait_hours'] = int(save[8])
+        res_time['wait_minutes'] = float(save[7])
+        res_time['wait_hours'] = float(save[8])
         save[8] = int(save[9])
 
         # res loop
@@ -385,6 +388,7 @@ if os.path.exists('./save.dat'):
 
 
         move = input('\nДействие  : ').split(' ')
+        timestamp = time.time()
 
 def save_game():
     with open('save.dat', 'w') as f:
@@ -446,7 +450,7 @@ def draw_buy():
             if res_time['hours'] >= 200 and money >= 10000000000000:
                 buy[1] = 1
         if buy[0] == 11:
-            if res_time['seconds'] >= 800000 and res_all[6]['count'] >= 150000 and res_all[7]['count'] >= 150000 and res_all[8]['count'] >= 150000:
+            if res_time['seconds'] >= 1000000 and res_all[6]['count'] >= 150000 and res_all[7]['count'] >= 150000 and res_all[8]['count'] >= 150000:
                 buy[1] = 1
         if buy[1] == 1: print('\n' + buy[buy[0]])
 
@@ -458,35 +462,40 @@ def draw_res():
 
 # game loops
 def progress():
-    global res_time, level
-    while 1:
-        time.sleep(1)
-        res_time['wait_minutes'] += 1     
-        res_time['wait_hours'] += 1    
-        res_time['seconds'] += 1
+    global res_time, level, timestamp
+    timestamp = time.time() - timestamp
 
-        if res_time['wait_minutes'] == 60:
-            res_time['wait_minutes'] = 0
-            res_time['minutes'] += 1  
+    res_time['wait_seconds'] += timestamp
+    res_time['wait_minutes'] += timestamp / 60
+    res_time['wait_hours'] += timestamp / 3600 
 
-        if res_time['wait_hours'] == 3600:
-            res_time['wait_hours'] = 0  
-            res_time['hours'] += 1
-            level += 1
+    if res_time['wait_seconds'] >= 1:
+        res_time['seconds'] += int(res_time['wait_seconds'])
+        res_time['wait_seconds'] -= int(res_time['wait_seconds'])
 
-        if res_all:
-            for i in res_all:
-                i['count'] += i['per_s']
-                if i['count'] > i['storage']:
-                    i['count'] = i['storage']
-                i['count'] = round(i['count'], 1)
+    while res_time['wait_minutes'] >= 60:
+        res_time['minutes'] += int(res_time['wait_minutes'] / 60)
+        res_time['wait_minutes'] -= int(res_time['wait_minutes'] / 60)
 
-        if game_exit == 1:
-            os._exit(1)
+    while res_time['wait_hours'] > 3600:
+        level += int(res_time['wait_hours'] / 3600)
+        res_time['hours'] += int(res_time['wait_hours'] / 3600)
+        res_time['wait_hours'] -= int(res_time['wait_hours'] / 3600)
+
+    if res_all:
+        for i in res_all:
+            i['count'] += i['per_s'] * timestamp
+            if i['count'] > i['storage']:
+                i['count'] = i['storage']
+
+            i['count'] = round(i['count'], 1)
+
+    timestamp = time.time()
+
 
 def game_render():
     while 1:
-        global money, move, name, page
+        global money, move, name, page, dev_mode
 
         if page == 'main':
             draw_header()
@@ -495,9 +504,13 @@ def game_render():
         
         elif page != 'start':
             res_stat()
-        
+
+        if dev_mode: print('\nws:', res_time['wait_seconds'], '\nwh:', res_time['wait_hours'], '\nto:', timestamp)
         if page != 'start': move = input('\nДействие  : ').split(' ')
         else: page = 'main'
+
+        if page == 'start': page = 'main'
+
         i = 0
         try: 
             res_id = index[move[0]]
@@ -571,7 +584,7 @@ def game_render():
                     res_all.append(res_klit)
 
                 if buy[0] == 11:
-                    res_time['seconds'] -= 800000
+                    res_time['seconds'] -= 1000000
                     res_all[6]['count'] -= 150000
                     res_all[7]['count'] -= 150000
                     res_all[8]['count'] -= 150000
@@ -582,7 +595,7 @@ def game_render():
 
             else: print('\033[31m' + buy[buy[0]] + '\033[0m'); move = input().split(' ')
 
-        if (move[0] == 'sell'  and len(move) > 1) or move[0] == 'sa':
+        if (move[0] == 'sell' and len(move) > 1) or move[0] == 'sa':
             if move[0] == 'sa': move = ['sell', 'all']
             sell(move[1])
 
@@ -637,12 +650,17 @@ def game_render():
         if move[0] == 'save' or move[0] == 's':
             save_game()
         
-        if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
-            os.system('rm ./save.dat')
+        if len(move) >= 3:
+            if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
+                os.system('rm ./save.dat')
+        
+        if len(move) >= 2:
+            if move[0] == 'developer' and move[1] == 'mode':
+                if dev_mode == 0: dev_mode = 1
+                else: dev_mode = 0
 
         res_stat()
+        progress()
 
-time_l = Thread(target=progress)
-render_l = Thread(target=game_render)
+game_render()
 
-time_l.start(); render_l.start(); time_l.join(); render_l.join()
