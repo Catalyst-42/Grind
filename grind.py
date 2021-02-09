@@ -666,7 +666,7 @@ def game_render():
         
         if move[0] == 'main' or move[0] == 'm':
             page = 'main'
-
+            
         if move[0] == 'save' or move[0] == 's':
             save_game()
         
