@@ -1,16 +1,13 @@
-import time
-import os
-from threading import Thread
-import os.path
+import time, os
 
+move = ['']
 name = 'Catalyst'
+page = 'start'
+timestamp = time.time()
 game_exit = 0
 money = 0
 level = 0
-move = ['']
 i = 0
-page = 'main'
-timestamp = time.time()
 dev_mode = 0
 
 help_text = '''\033[35mКоманды\033[0m
@@ -90,7 +87,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.6 fix'''
+Версия: release 1.8 No Threading Update'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -200,16 +197,16 @@ index = {'Камень': 0,
          'Кремнелит': 8,
          'Хром': 9}
 
-buy = [2, 0, 'Камень    : 1 минута; 10 секунд', 
-             'Дерево    : 10 минут; 50 камней', 
-             'Уголь     : 5 часов; 30,000 дерева', 
-             'Ткань     : 100,000,000$; 10,000 угля; 600 минут', 
-             'Медь      : 10,000,000,000$; 15 часов; 50,000 ткани', 
-             'Железо    : 24 часа; 100,000,000,000$', 
-             'Золото    : 300,000 секунд; 500,000,000,000$', 
-             'Уран      : 1 секунда; 1,000,000,000,000$',
-             'Кремнелит : 200 часов, 10,000,000,000,000$',
-             'Хром      : 1,000,000 секунд; 150,000 Золота; 150,000 Урана;\n            150,000 Кремнелита']
+buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд', 
+             'Дерево    : 10 минут;\n            50 камней', 
+             'Уголь     : 5 часов;\n            30,000 дерева', 
+             'Ткань     : 100,000,000$;\n            10,000 угля;\n            600 минут', 
+             'Медь      : 10,000,000,000$;\n            15 часов;\n            50,000 ткани', 
+             'Железо    : 24 часа;\n            100,000,000,000$', 
+             'Золото    : 300,000 секунд;\n            500,000,000,000$', 
+             'Уран      : 1 секунда;\n            1,000,000,000,000$',
+             'Кремнелит : 200 часов;\n            10,000,000,000,000$',
+             'Хром      : 1,000,000 секунд;\n            150,000 Золота;\n            150,000 Урана;\n            150,000 Кремнелита']
 
 res_all = []
 
@@ -245,7 +242,7 @@ def draw_storage(count, max_count):
         out += '.'
         iteration += 1
 
-    return out+'] ' + str(percents) + '%' + ' ' * (3 - len(str(percents)))
+    return out + '] ' + str(percents) + '%' + ' ' * (3 - len(str(percents)))
 
 def upgradable(up_cost, level):
     level = str(level)
@@ -291,17 +288,26 @@ def res_stat():
             print('\n' + move[0] + '.', i['name'] + ' \n')
         except Exception: pass
     if i:
-        print('Колличество :', pn(i['count']), '\nХранилище   :', pn(round(i['storage'])),'\nСтоимость 1 :', pn(i['price']) + '$', '\nВ секунду   :', round(i['per_s'], 2), '\nУровень     :', pn(i['level']), '\n\nУлучшение\n')
+        print('Колличество :', pn(i['count']),\
+            '\nХранилище   :', pn(round(i['storage'])),\
+            '\nСтоимость 1 :', pn(i['price']) + '$',\
+            '\nВ секунду   :', round(i['per_s'], 2),\
+            '\nУровень     :', pn(i['level']),\
+            '\n\nУлучшение\n')
+
         if money >= i['up_cost']: print('\033[32m', end='')
         else: print('\033[31m', end='')
+        
         if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage']))
         else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
+        
         if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']*2))
         else: print('Стоимость 1 :', '+' + str(i['price_start']))
-        print('В секунду   :', '+0.1')
-        print('\nЦена улучшения :', pn(i['up_cost']) + '$')
-        print('Деньги         :', pn(money) + '$')
-        print('\033[0m', end='')
+        
+        print('В секунду   :', '+0.1',\
+            '\n\nЦена улучшения :', pn(i['up_cost']) + '$',\
+            '\nДеньги         :', pn(money) + '$',\
+            '\033[0m')
 
         page = i['name']
 
@@ -344,7 +350,6 @@ if os.path.exists('./save.dat'):
             save_res_update(j[i], i)
             res_all.append(j[i])
 
-
         # offline encounter
         os.system('clear')
         timestamp = time.time() - timestamp
@@ -362,26 +367,28 @@ if os.path.exists('./save.dat'):
             offline_min += 1
             offline_sec -= 60
         
-        print('Секунд:', offline_sec)
-        print('Минут :', offline_min)
-        print('Часов :', offline_hrs)
+        print(offline_hrs,' ч ', offline_min, ' мин ', offline_sec, ' с', sep='')
         print('\nВы получили:\n')
-        print(draw_name('Секунд'), pn(timestamp))
-        if timestamp//60>=1000: print(draw_name('Минут'), pn(timestamp//60)) 
-        else: print(draw_name('Минут'), timestamp//60)
-        if timestamp//3600>=1000: print(draw_name('Часов'), pn(timestamp//3600))
-        else: print(draw_name('Часов'), timestamp//3600)
-        print(draw_name('Уровней'), timestamp//3600, end='\n\n')
+        print(draw_name('Секунды'), pn(timestamp))
+
+        if timestamp//60>=1000: print(draw_name('Минуты'), pn(timestamp//60)) 
+        else: print(draw_name('Минуты'), timestamp//60)
+
+        if timestamp//3600>=1000: print(draw_name('Часы'), pn(timestamp//3600))
+        else: print(draw_name('Часы'), timestamp//3600)
+
+        print(draw_name('Уровни'), timestamp//3600, end='\n\n')
+
         for i in res_all:
             if i['per_s'] * timestamp + i['count'] < i['storage']: print(draw_name(i['name']), pn(i['per_s'] * timestamp))
             else: print('\033[31m'+draw_name(i['name']), pn(i['storage'] - i['count']) + '\033[0m')
             res_all[index[i['name']]]['count'] += i['per_s'] * timestamp 
             if i['count'] > i['storage']:i['count'] = i['storage']
 
-        level += timestamp//3600
         res_time['seconds'] += timestamp
         res_time['minutes'] += timestamp//60
         res_time['hours'] += timestamp//3600
+        level += timestamp//3600
 
         res_time['wait_minutes'] += offline_sec
         res_time['wait_hours'] += offline_sec
@@ -450,15 +457,20 @@ def draw_buy():
             if res_time['hours'] >= 200 and money >= 10000000000000:
                 buy[1] = 1
         if buy[0] == 11:
-            if res_time['seconds'] >= 1000000 and res_all[6]['count'] >= 150000 and res_all[7]['count'] >= 150000 and res_all[8]['count'] >= 150000:
+            if res_time['seconds'] >= 1000000 and \
+            res_all[6]['count'] >= 150000 and \
+            res_all[7]['count'] >= 150000 and \
+            res_all[8]['count'] >= 150000:
                 buy[1] = 1
+
         if buy[1] == 1: print('\n' + buy[buy[0]])
 
 def draw_res():
     if res_all:
         print('\nРесурсы\n')
         for i in res_all:
-            print(draw_name(i['name']), draw_storage(i['count'], i['storage']), '|',  upgradable(i['up_cost'], i['level']), pn(i['price'] * i['count']) + '$')
+            print(draw_name(i['name']), draw_storage(i['count'], i['storage']), '|',\
+            upgradable(i['up_cost'], i['level']), pn(i['price'] * i['count']) + '$')
 
 # game loops
 def progress():
@@ -466,8 +478,8 @@ def progress():
     timestamp = time.time() - timestamp
 
     res_time['wait_seconds'] += timestamp
-    res_time['wait_minutes'] += timestamp / 60
-    res_time['wait_hours'] += timestamp / 3600 
+    res_time['wait_minutes'] += timestamp
+    res_time['wait_hours'] += timestamp 
 
     if res_time['wait_seconds'] >= 1:
         res_time['seconds'] += int(res_time['wait_seconds'])
@@ -475,12 +487,12 @@ def progress():
 
     while res_time['wait_minutes'] >= 60:
         res_time['minutes'] += int(res_time['wait_minutes'] / 60)
-        res_time['wait_minutes'] -= int(res_time['wait_minutes'] / 60)
+        res_time['wait_minutes'] -= int(res_time['wait_minutes'])
 
-    while res_time['wait_hours'] > 3600:
+    while res_time['wait_hours'] >= 3600:
         level += int(res_time['wait_hours'] / 3600)
         res_time['hours'] += int(res_time['wait_hours'] / 3600)
-        res_time['wait_hours'] -= int(res_time['wait_hours'] / 3600)
+        res_time['wait_hours'] -= int(res_time['wait_hours'])
 
     if res_all:
         for i in res_all:
@@ -505,7 +517,12 @@ def game_render():
         elif page != 'start':
             res_stat()
 
-        if dev_mode: print('\nws:', res_time['wait_seconds'], '\nwh:', res_time['wait_hours'], '\nto:', timestamp)
+        if dev_mode: print('\nws:', res_time['wait_seconds'], \
+            '\nwm:', res_time['wait_minutes'], \
+            '\nwh:', res_time['wait_hours'], \
+            '\nut:', time.time(),\
+            '\npg:', page)
+
         if page != 'start': move = input('\nДействие  : ').split(' ')
         else: page = 'main'
 
@@ -522,6 +539,8 @@ def game_render():
         if i != 0:
             if page != i['name']:
                 page = 'main'
+
+        progress()
         
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
             save_game()
@@ -597,6 +616,7 @@ def game_render():
 
         if (move[0] == 'sell' and len(move) > 1) or move[0] == 'sa':
             if move[0] == 'sa': move = ['sell', 'all']
+            elif move[1] != 'all' and move[1].isalpha(): move[1] = move[1].capitalize()
             sell(move[1])
 
         if move[0] == 'up' and len(move) > 1:
@@ -660,7 +680,5 @@ def game_render():
                 else: dev_mode = 0
 
         res_stat()
-        progress()
 
 game_render()
-
