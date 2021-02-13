@@ -9,6 +9,7 @@ money = 0
 level = 0
 i = 0
 dev_mode = 0
+colors_open = 1
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -186,6 +187,48 @@ res_chromium = {'name': 'Хром',
                'per_s': 0.5,
                'level': 1}
 
+colors = [
+    {'name': 'Белый',
+    'up_cost': 10000,
+    'per_s': 100000,
+    'level': 0},
+
+    {'name': 'Серый',
+    'up_cost': 10000,
+    'per_s': 200000,
+    'level': 0},
+
+    {'name': 'Красный',
+    'up_cost': 10000,
+    'per_s': 300000,
+    'level': 0},
+
+    {'name': 'Желтый',
+    'up_cost': 10000,
+    'per_s': 400000,
+    'level': 0},
+
+    {'name': 'Зеленый',
+    'up_cost': 10000,
+    'per_s': 500000,
+    'level': 0},
+
+    {'name': 'Бирюзовый',
+    'up_cost': 10000,
+    'per_s': 600000,
+    'level': 0},
+    
+    {'name': 'Синий',
+    'up_cost': 10000,
+    'per_s': 700000,
+    'level': 0},
+    
+    {'name': 'Фиолетовый',
+    'up_cost': 10000,
+    'per_s': 800000,
+    'level': 0}
+]
+
 index = {'Камень': 0,
          'Дерево': 1,
          'Уголь': 2,
@@ -195,7 +238,15 @@ index = {'Камень': 0,
          'Золото': 6,
          'Уран': 7,
          'Кремнелит': 8,
-         'Хром': 9}
+         'Хром': 9,
+         'Белый': 10,
+         'Серый': 11,
+         'Красный': 12,
+         'Желтый': 13,
+         'Зеленый': 14,
+         'Бирюзовый': 15,
+         'Синий': 16,
+         'Фиолетовый': 17}
 
 buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд', 
              'Дерево    : 10 минут;\n            50 камней', 
@@ -206,7 +257,8 @@ buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд',
              'Золото    : 300,000 секунд;\n            500,000,000,000$', 
              'Уран      : 1 секунда;\n            1,000,000,000,000$',
              'Кремнелит : 200 часов;\n            10,000,000,000,000$',
-             'Хром      : 1,000,000 секунд;\n            150,000 Золота;\n            150,000 Урана;\n            150,000 Кремнелита']
+             'Хром      : 1,000,000 секунд;\n            150,000 Золота;\n            150,000 Урана;\n            150,000 Кремнелита',
+             'Красители : 150,000 Хрома']
 
 res_all = []
 
@@ -227,8 +279,9 @@ def pn(number):
         return out
     else: return str(number)
 
-def gap(name):
-    return (' ' * (17 - len(pn(name))))
+def gap(name, length=17, pointed=1):
+    if pointed: return (' ' * (length - len(pn(name))))
+    else: return name + (' ' * (length - len(name)))
 
 def draw_storage(count, max_count):
     percents = round(count / max_count * 100)
@@ -244,10 +297,14 @@ def draw_storage(count, max_count):
 
     return out + '] ' + str(percents) + '%' + ' ' * (3 - len(str(percents)))
 
-def upgradable(up_cost, level):
+def upgradable(up_cost, level, color='none'):
     level = str(level)
-    if money >= up_cost: return '\033[32ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
-    else: return '\033[31ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
+    if color == 'none':
+        if money >= up_cost: return '\033[32ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
+        else: return '\033[31ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
+    else:
+        if res_all[color]['count'] >= up_cost: return '\033[32ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
+        else: return '\033[31ml: ' + str(level) + '\033[0m' + ' '*(5-len(level)) + '|'
 
 def sell(move):
     global money
@@ -277,7 +334,8 @@ def res_stat():
     global move, page, previous
     i = 0
     if move[0].isalpha(): move[0] = move[0].capitalize()
-    if page != 'main': move[0] = page
+    
+    # извините, я не знаю, как это оптимизировать...
     try: 
         res_id = index[move[0]]
         i = res_all[res_id]
@@ -286,43 +344,76 @@ def res_stat():
         try:
             i = res_all[int(move[0]) - 1]
             print('\n' + move[0] + '.', i['name'] + ' \n')
-        except Exception: pass
+        except Exception: 
+            try:
+                i = colors[int(move[0]) - 11]
+                print('\n' + move[0] + '.', i['name'] + ' краситель\n')
+            except Exception: 
+                try:
+                    i = colors[index[move[0]] - 10]
+                    print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                except Exception: 
+                    move[0] = page
+                    try: 
+                        res_id = index[move[0]]
+                        i = res_all[res_id]
+                        print('\n' + str(res_id+1) + '.', move[0] + ' \n')
+                    except Exception:
+                        try:
+                            i = colors[index[move[0]] - 10]
+                            print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                        except Exception: pass
+
     if i:
-        print('Колличество :', pn(i['count']),\
-            '\nХранилище   :', pn(round(i['storage'])),\
-            '\nСтоимость 1 :', pn(i['price']) + '$',\
-            '\nВ секунду   :', round(i['per_s'], 2),\
-            '\nУровень     :', pn(i['level']),\
-            '\n\nУлучшение\n')
+        if index[i['name']] < 10:
+            print('Колличество :', pn(i['count']),\
+                '\nХранилище   :', pn(round(i['storage'])),\
+                '\nСтоимость 1 :', pn(i['price']) + '$',\
+                '\nВ секунду   :', round(i['per_s'], 2),\
+                '\nУровень     :', pn(i['level']),\
+                '\n\nУлучшение\n')
 
-        if money >= i['up_cost']: print('\033[32m', end='')
-        else: print('\033[31m', end='')
-        
-        if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage']))
-        else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
-        
-        if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + str(i['price'] + i['price_start']*2))
-        else: print('Стоимость 1 :', '+' + str(i['price_start']))
-        
-        print('В секунду   :', '+0.1',\
-            '\n\nЦена улучшения :', pn(i['up_cost']) + '$',\
-            '\nДеньги         :', pn(money) + '$',\
-            '\033[0m')
+            if money >= i['up_cost']: print('\033[32m', end='')
+            else: print('\033[31m', end='')
+            
+            if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage']))
+            else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
+            
+            if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + pn(i['price'] + i['price_start']*2) + '$')
+            else: print('Стоимость 1 :', '+' + pn(i['price_start']) + '$' )
+            
+            print('В секунду   :', '+0.1',\
+                '\n\nЦена улучшения :', pn(i['up_cost']) + '$',\
+                '\nДеньги         :', pn(money) + '$',\
+                '\033[0m')
+            
+            page = i['name']
 
-        page = i['name']
+        elif colors_open: 
+            print('$ В секунду :', pn(i['per_s'] * i['level']) + '$', '\nУровень     :', pn(i['level']))
+
+            if res_all[index[i['name']] - 10]['count'] >= i['up_cost']: print('\033[32m', end='')
+            else: print('\033[31m', end='')
+            text = ['Камня', 'Дерева', 'Угля', 'Ткани', 'Меди', 'Железа', 'Золота', 'Урана']
+            print('\nУлучшение\n', '\n$ В секунду : +' + pn(i['per_s']) + '$' )
+            print('\nЦена улучшения :', pn(i['up_cost']) + ' ' + text[index[i['name']] - 10])
+            print(gap(res_all[index[i['name']] - 10]['name'], 15, 0) + ':', pn(res_all[index[i['name']] - 10]['count']), '\033[0m')
+
+            page = i['name']
+        
 
     else: move = ['']; page = 'main'
 
 # save and load
 def save_res_update(res, offset):
     offset = offset * 7
-    res['count'] = float(save[10 + offset])
-    res['price'] = int(save[11 + offset])
-    res['price_start'] = int(save[12 + offset])
-    res['up_cost'] = float(save[13 + offset])
-    res['storage'] = float(save[14 + offset])
-    res['per_s'] = float(save[15 + offset])
-    res['level'] = int(save[16 + offset])
+    res['count'] = float(save[11 + offset])
+    res['price'] = int(save[12 + offset])
+    res['price_start'] = int(save[13 + offset])
+    res['up_cost'] = float(save[14 + offset])
+    res['storage'] = float(save[15 + offset])
+    res['per_s'] = float(save[16 + offset])
+    res['level'] = int(save[17 + offset])
 
 if os.path.exists('./save.dat'):
     with open('save.dat', 'r') as f:
@@ -342,13 +433,23 @@ if os.path.exists('./save.dat'):
         res_time['wait_minutes'] = float(save[7])
         res_time['wait_hours'] = float(save[8])
         save[8] = int(save[9])
+        colors_open = int(save[10])
 
         # res loop
         buy[0] = save[8]
-        for i in range(buy[0] - 2):
+
+        if buy[0] - 2 > 10: b = range(10)
+        else: b = range(buy[0] - 2)
+
+        for i in b:
             j = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium, res_klit, res_chromium]
             save_res_update(j[i], i)
             res_all.append(j[i])
+
+        if colors_open:
+            for i in range(len(colors)):
+                colors[i]['up_cost'] = int(save[81 + i*2])
+                colors[i]['level'] = int(save[82 + i*2])
 
         # offline encounter
         os.system('clear')
@@ -393,7 +494,6 @@ if os.path.exists('./save.dat'):
         res_time['wait_minutes'] += offline_sec
         res_time['wait_hours'] += offline_sec
 
-
         move = input('\nДействие  : ').split(' ')
         timestamp = time.time()
 
@@ -409,6 +509,7 @@ def save_game():
         f.write(str(res_time['wait_minutes'])  + '\n')
         f.write(str(res_time['wait_hours'])  + '\n')
         f.write(str(buy[0])  + '\n')
+        f.write(str(colors_open) + '\n')
 
         for i in res_all:
             f.write(str(i['count'])  + '\n')
@@ -419,6 +520,10 @@ def save_game():
             f.write(str(i['per_s'])  + '\n')
             f.write(str(i['level'])  + '\n')
 
+        for i in colors:
+            f.write(str(i['up_cost']) + '\n')
+            f.write(str(i['level']) + '\n')
+
 # functions
 def draw_header():
     os.system('clear')
@@ -427,7 +532,7 @@ def draw_header():
     print('Часы      :', pn(res_time['hours']), gap(res_time['hours']) + '| Деньги  :', pn(money) + '$')
 
 def draw_buy():
-    if buy[0] <= 11:
+    if buy[0] <= 12:
         buy[1] = 0
         if buy[0] == 2:
             if res_time['seconds'] >= 10 and res_time['minutes'] >= 1:
@@ -463,6 +568,10 @@ def draw_buy():
             res_all[8]['count'] >= 150000:
                 buy[1] = 1
 
+        if buy[0] == 12:
+            if res_all[9]['count'] >= 150000:
+                buy[1] = 1
+
         if buy[1] == 1: print('\n' + buy[buy[0]])
 
 def draw_res():
@@ -472,9 +581,23 @@ def draw_res():
             print(draw_name(i['name']), draw_storage(i['count'], i['storage']), '|',\
             upgradable(i['up_cost'], i['level']), pn(i['price'] * i['count']) + '$')
 
+    if colors_open:
+        print('\nКрасители\n')
+
+        text = ['█ Белый краситель             \033[0m|',
+        '\033[2m█ Серый краситель             \033[0m|',
+        '\033[31m█ Красный краситель           \033[0m|',
+        '\033[33m█ Желтый краситель            \033[0m|',
+        '\033[32m█ Зеленый краситель           \033[0m|',
+        '\033[36m█ Бирюзовый краситель         \033[0m|',
+        '\033[34m█ Синий краситель             \033[0m|',
+        '\033[35m█ Фиолетовый краситель        \033[0m|']
+        for i in range(len(colors)):
+
+            print(text[i], upgradable(colors[i]['up_cost'], colors[i]['level'], i), pn(colors[i]['per_s'] * colors[i]['level']) + '$ / с')
 # game loops
 def progress():
-    global res_time, level, timestamp
+    global res_time, level, timestamp, colors, colors_open, money
     timestamp = time.time() - timestamp
 
     res_time['wait_seconds'] += timestamp
@@ -502,12 +625,15 @@ def progress():
 
             i['count'] = round(i['count'], 1)
 
-    timestamp = time.time()
+    if colors_open:
+        for i in colors:
+            money += i['per_s'] * i['level'] * timestamp
 
+    timestamp = time.time()
 
 def game_render():
     while 1:
-        global money, move, name, page, dev_mode
+        global money, move, name, page, dev_mode, colors_open, colors
 
         if page == 'main':
             draw_header()
@@ -521,7 +647,9 @@ def game_render():
             '\nwm:', res_time['wait_minutes'], \
             '\nwh:', res_time['wait_hours'], \
             '\nut:', time.time(),\
-            '\npg:', page)
+            '\npg:', page, \
+            '\nco:', colors_open,\
+            '\nb0:', buy[0])
 
         if page != 'start': move = input('\nДействие  : ').split(' ')
         else: page = 'main'
@@ -553,7 +681,7 @@ def game_render():
             print(help_text)
             move = input('\nДействие : ').split(' ')
         
-        if move[0] == 'open' and buy[0] < len(index) + 2:
+        if move[0] == 'open' and buy[0] <= 12:
             if buy[1] == 1:
                 if buy[0] == 2:
                     res_time['seconds'] -= 10
@@ -609,6 +737,10 @@ def game_render():
                     res_all[8]['count'] -= 150000
                     res_all.append(res_chromium)
 
+                if buy[0] == 12:
+                    res_all[9]['count'] -= 150000
+                    colors_open = 1
+
                 buy[1] = 0
                 buy[0] += 1
 
@@ -623,14 +755,24 @@ def game_render():
             if move[1].isalpha(): move[1] =  move[1].capitalize()
             i = 0
             loop = 1
+            colored = 0 
+            
             try: 
                 res_id = index[move[1]]
                 i = res_all[res_id]
-                
             except Exception:
                 try:
                     i = res_all[int(move[1]) - 1]
-                except Exception: pass
+                except Exception:
+                    try:
+                        i = colors[int(move[1]) - 11]
+                        colored = 1
+                    except Exception: 
+                        try:
+                            i = colors[index[move[1]] - 10]
+                            colored = 1
+                        except Exception: pass
+
             try:
                 if move[2] == 'max': loop = 'max'
                 else: loop = int(move[2])
@@ -638,7 +780,7 @@ def game_render():
             
             if i:
                 while 1:
-                    if money >= i['up_cost']:
+                    if not colored and money >= i['up_cost']:
                         money -= i['up_cost']
                         i['level'] += 1
                         # увеличение цены продажи
@@ -656,17 +798,25 @@ def game_render():
                         i['storage'] += i['level'] * 1.5
                         # увеличение ресурсов в секунду
                         i['per_s'] += 0.1
+
                         if loop != 'max': 
                             loop -=1
                             if loop <= 0: break
+
+                    elif colored and colors_open and res_all[index[i['name']] - 10]['count'] >= i['up_cost']:
+                        res_all[index[i['name']] - 10]['count'] -= i['up_cost']
+                        colors[index[i['name']] - 10]['up_cost'] += 10000
+                        colors[index[i['name']] - 10]['level'] += 1
+
+                        if loop != 'max': 
+                            loop -=1
+                            if loop <= 0: break
+
                     else: break
         
         if move[0] == 'name':
             name = move[1]
         
-        if move[0] == 'main' or move[0] == 'm':
-            page = 'main'
-            
         if move[0] == 'save' or move[0] == 's':
             save_game()
         
@@ -679,6 +829,9 @@ def game_render():
                 if dev_mode == 0: dev_mode = 1
                 else: dev_mode = 0
 
-        res_stat()
+        if move[0] == 'main' or move[0] == 'm':
+            page = 'main'
+            
+        else: res_stat()
 
 game_render()

@@ -73,6 +73,7 @@ hours          : 0
 wait minutes   : 23
 wain hours     : 32
 buy            : 6
+colors open    : 11
 10 count       : 222
 10 price       : 10000
 10 price start : 21
