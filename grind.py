@@ -88,7 +88,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.8 No Threading Update'''
+Версия: release 2.0 Color Update'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
