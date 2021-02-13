@@ -91,4 +91,7 @@ text = ['''Секунды   : 9,999,999,999,999 | Профиль : Catalyst
 '''
 12 > 24 > 48 > 72
 '''
-print(text[-1])
+
+for i in text:
+    print(i)
+
