@@ -234,24 +234,9 @@ colors = [
     'level': 0}
 ]
 
-index = {'Камень': 0,
-         'Дерево': 1,
-         'Уголь': 2,
-         'Ткань': 3,
-         'Медь': 4,
-         'Железо': 5,
-         'Золото': 6,
-         'Уран': 7,
-         'Кремнелит': 8,
-         'Хром': 9,
-         'Белый': 10,
-         'Серый': 11,
-         'Красный': 12,
-         'Желтый': 13,
-         'Зеленый': 14,
-         'Бирюзовый': 15,
-         'Синий': 16,
-         'Фиолетовый': 17}
+index = {'Камень': 0, 'Дерево': 1, 'Уголь': 2, 'Ткань': 3, 'Медь': 4, 'Железо': 5, 
+         'Золото': 6, 'Уран': 7, 'Кремнелит': 8, 'Хром': 9, 'Белый': 10, 'Серый': 11, 
+         'Красный': 12, 'Желтый': 13, 'Зеленый': 14,'Бирюзовый': 15, 'Синий': 16, 'Фиолетовый': 17}
 
 buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд', 
              'Дерево    : 10 минут;\n            50 камней', 
@@ -413,22 +398,9 @@ def res_stat():
         move = ['']
         if page != 'stats': page = 'main'
 
-# save and load stats
-if os.path.exists('./stats.dat'):
-    with open('stats.dat', 'r') as f:
-        save = f.read().splitlines()
-        stats = [float(save[0]), save[1], save[2], float(save[3]), float(save[4]), float(save[5]), float(save[6]),
-        float(save[7]), float(save[8]), float(save[9]), float(save[10]), float(save[11]), int(save[12]), int(save[13])]
-
-def save_stats():
-    timestamp = time.time() - stats[0]
+def text_time(timestamp):
     out = [0, 0, 0, 0]
-    stats[2] = ''
-
-    stats[3] = timestamp // 1
-    stats[4] = timestamp // 60
-    stats[5] = timestamp // 3600
-    stats[10] = stats[6] / timestamp
+    text = ''
 
     while timestamp - 24*60*60 >= 0:
         out[0] += 1
@@ -446,10 +418,32 @@ def save_stats():
         out[3] += 1
         timestamp -= 1
     
-    if out[0] > 0: stats[2] += str(out[0]) + ' д '
-    if out[1] > 0: stats[2] += str(out[1]) + ' ч '
-    if out[2] > 0: stats[2] += str(out[2]) + ' м '
-    if out[3] > 0: stats[2] += str(out[3]) + ' с '
+    if out[0] > 0: text += str(out[0]) + ' д '
+    if out[1] > 0: text += str(out[1]) + ' ч '
+    if out[2] > 0: text += str(out[2]) + ' м '
+    text += str(out[3]) + ' с '
+
+    return text
+
+# save and load stats
+if os.path.exists('./stats.dat'):
+    with open('stats.dat', 'r') as f:
+        save = f.read().splitlines()
+        stats = [float(save[0]), save[1], save[2], float(save[3]), float(save[4]), float(save[5]), float(save[6]),
+        float(save[7]), float(save[8]), float(save[9]), float(save[10]), float(save[11]), int(save[12]), int(save[13])]
+
+    f.close()
+
+def save_stats():
+    timestamp = time.time() - stats[0]
+    stats[2] = ''
+
+    stats[3] = timestamp // 1
+    stats[4] = timestamp // 60
+    stats[5] = timestamp // 3600
+    stats[10] = stats[6] / timestamp
+
+    stats[2] = text_time(timestamp)
 
     stats[12] = 0 
     if res_all:
@@ -475,54 +469,9 @@ def save_stats():
 
 def draw_stats():
     os.system('clear')
-    timestamp = stats[7]
-    out = [0, 0, 0, 0]
-    while timestamp - 24*60*60 >= 0:
-        out[0] += 1
-        timestamp -= 24*60*60
 
-    while timestamp - 60*60 >= 0:
-        out[1] += 1
-        timestamp -= 60*60
-    
-    while timestamp - 60 >= 0:
-        out[2] += 1
-        timestamp -= 60
-
-    while timestamp - 1 >= 0:
-        out[3] += 1
-        timestamp -= 1
-    
-    max_offline = ''
-
-    if out[0] > 0: max_offline += str(out[0]) + ' д '
-    if out[1] > 0: max_offline += str(out[1]) + ' ч '
-    if out[2] > 0: max_offline += str(out[2]) + ' м '
-    if out[3] > 0: max_offline += str(out[3]) + ' с '
-
-    timestamp = stats[8]
-    out = [0, 0, 0, 0]
-    best_offline = ''
-    while timestamp - 24*60*60 >= 0:
-        out[0] += 1
-        timestamp -= 24*60*6
-
-    while timestamp - 60*60 >= 0:
-        out[1] += 1
-        timestamp -= 60*60
-    
-    while timestamp - 60 >= 0:
-        out[2] += 1
-        timestamp -= 60
-
-    while timestamp - 1 >= 0:
-        out[3] += 1
-        timestamp -= 1
-    
-    if out[0] > 0: best_offline += str(out[0]) + ' д '
-    if out[1] > 0: best_offline += str(out[1]) + ' ч '
-    if out[2] > 0: best_offline += str(out[2]) + ' м '
-    if out[3] > 0: best_offline += str(out[3]) + ' с '
+    max_offline = text_time(stats[7])
+    best_offline = text_time(stats[8])
 
     print('Статистика игрока', name,
         '\n\nНачало игры :', stats[1],
@@ -530,14 +479,14 @@ def draw_stats():
         '\n\nСекунд получено :', pn(stats[3]), 
         '\nМинут получено  :', pn(stats[4]),
         '\nЧасов получено  :', pn(stats[5]),
-        '\nДенег получено  :', pn(stats[6]) + '$',
         '\n\nМаксимальное время в афк :', max_offline,
         '\nПрибыльное время в афк   :', best_offline,
+        '\nДенег получено  :', pn(stats[6]) + '$',
         '\n\nДеньги                       :', pn(money) + '$',
         '\nМаксимум денег в кошельке    :', pn(stats[9]) + '$',
-        '\nДенег в секунду за все время :', pn(stats[10]) + '$ / c',
-        '\nДенег в секунду за красители :', pn(stats[11]) + '$ / c',
-        '\n\nУровней куплено      :', pn(stats[12]),
+        '\nДенег в секунду за все время :', pn(stats[10]) + '$ / c')
+    if colors_open: print('Денег в секунду за красители :', pn(stats[11]) + '$ / c')
+    print('\nУровней куплено      :', pn(stats[12]),
         '\nМаксимальный уровень :', stats[13])
 
 # save and load
@@ -613,7 +562,7 @@ if os.path.exists('./save.dat'):
         if offline_days > 0: print(offline_days, 'д ', end='')
         if offline_hrs > 0: print(offline_hrs, 'ч ', end='')
         if offline_min > 0: print(offline_min, 'м ', end='')
-        if offline_sec > 0: print(offline_sec, 'с ', end='')
+        print(offline_sec, 'с ', end='')
 
         print('\n\nВы получили:\n')
         
@@ -651,6 +600,8 @@ if os.path.exists('./save.dat'):
 
         move = input('\nДействие  : ').split(' ')
         timestamp = time.time()
+    
+    f.close()
 
 def save_game():
     with open('save.dat', 'w') as f:
