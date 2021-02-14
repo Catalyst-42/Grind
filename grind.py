@@ -88,7 +88,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 2.0 Color Update'''
+Версия: release 1.8 No Threading Update'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -451,6 +451,7 @@ if os.path.exists('./save.dat'):
                 colors[i]['up_cost'] = int(save[81 + i*2])
                 colors[i]['level'] = int(save[82 + i*2])
 
+
         # offline encounter
         os.system('clear')
         timestamp = time.time() - timestamp
@@ -470,6 +471,14 @@ if os.path.exists('./save.dat'):
         
         print(offline_hrs,' ч ', offline_min, ' мин ', offline_sec, ' с', sep='')
         print('\nВы получили:\n')
+        
+        median = money
+        if colors_open:
+            for i in colors:
+                money += i['per_s'] * i['level'] * timestamp
+        
+            print(draw_name('Деньги'), pn(money - median) + '$\n')
+        
         print(draw_name('Секунды'), pn(timestamp))
 
         if timestamp//60>=1000: print(draw_name('Минуты'), pn(timestamp//60)) 
@@ -478,7 +487,8 @@ if os.path.exists('./save.dat'):
         if timestamp//3600>=1000: print(draw_name('Часы'), pn(timestamp//3600))
         else: print(draw_name('Часы'), timestamp//3600)
 
-        print(draw_name('Уровни'), timestamp//3600, end='\n\n')
+        print(draw_name('Уровни'), pn(timestamp//3600), end='\n\n')
+        
 
         for i in res_all:
             if i['per_s'] * timestamp + i['count'] < i['storage']: print(draw_name(i['name']), pn(i['per_s'] * timestamp))
