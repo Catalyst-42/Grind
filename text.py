@@ -129,7 +129,168 @@ $ В секунду : + 100,000$
 Цена улучшения : 10,000 дерева
 Дерево         : 123,921\033[0m
 
-Действие  :''']
+Действие  :''', '''Статистика игрока Catalyst
 
-print(text[-1])
+Начало игры : 25.08.2020
+Время игры  : 12 д 13 ч 21 мин 12 с 
+
+Секунд получено : 5,839,860
+Минут получено  : 97,411
+Часов получено  : 1,622
+Денег получено  : 234,329,513,123$
+
+Максимальное время в афк : 10 д 1 ч 25 мин 30 с 
+Прибыльное время в афк   : 2 ч 15 мин
+
+Максимум денег в кошельке    : 10,234,289,532$
+Денег в секунду за все время : 20,000 $ / с
+Денег в секунду за красители : 40,000,000$ / с
+
+Уровней куплено      : 613
+Максимальный уровень : 250
+
+Действие : 
+''']
+
+# отрисовка демок
+# print(text[-1])
 # for i in text: print(i)
+
+def pn(number):
+    number = round(number)
+    if number >= 1000:
+        iteration = 3
+        iter_dash = 0
+        out = str(number)
+        while iteration < len(str(number)):
+            out = out[:-iteration-iter_dash] + ',' + out[-iteration-iter_dash:]
+            iteration += 3
+            iter_dash += 1
+        return out
+    else: return str(number)
+
+def draw_res_count():
+    money = 0
+
+    res_stone = {'name': 'Камень',
+                'count': 0,
+                'price': 1,
+                'price_start': 1,
+                'up_cost': 10,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_wood = {'name': 'Дерево',
+                'count': 0,
+                'price': 5,
+                'price_start': 5,
+                'up_cost': 100,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_coal = {'name': 'Уголь',
+                'count': 0,
+                'price': 50,
+                'price_start': 50,
+                'up_cost': 500,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_fabric = {'name': 'Ткань',
+                'count': 0,
+                'price': 100,
+                'price_start': 100,
+                'up_cost': 1000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_copper = {'name': 'Медь',
+                'count': 0,
+                'price': 200,
+                'price_start': 200,
+                'up_cost': 2000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_steel = {'name': 'Железо',
+                'count': 0,
+                'price': 500,
+                'price_start': 500,
+                'up_cost': 4000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_gold = {'name': 'Золото',
+                'count': 0,
+                'price': 1000,
+                'price_start': 1000,
+                'up_cost': 10000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_uranium = {'name': 'Уран',
+                'count': 0,
+                'price': 2000,
+                'price_start': 2000,
+                'up_cost': 50000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_klit = {'name': 'Кремнелит',
+                'count': 0,
+                'price': 5000,
+                'price_start': 5000,
+                'up_cost': 100000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_chromium = {'name': 'Хром',
+                'count': 0,
+                'price': 10000,
+                'price_start': 10000,
+                'up_cost': 500000,
+                'storage': 100,
+                'per_s': 0.5,
+                'level': 1}
+
+    res_all = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium, res_klit, res_chromium]
+    res_levels = [300, 250, 250, 250, 250, 250, 235, 235, 235 ,215]
+
+    for number in range(len(res_all)):
+        i = res_all[number]
+        for loop in range(res_levels[number] - 2):
+            money -= i['up_cost']
+            i['level'] += 1
+            # увеличение цены продажи
+            i['price'] +=  i['price_start']
+            # бонус в 100 уровней
+            if i['level'] % 100 == 0:
+                i['price'] +=  i['price_start']
+                i['price_start'] *= 2
+                i['price'] *= 2
+                i['up_cost'] *= 1.4
+            if i['level'] % 50 == 0: i['storage'] *= 2
+            # увеличение стоимости улучшения
+            i['up_cost'] *= 1.07
+            # увеличение хранилища
+            i['storage'] += i['level'] * 1.5
+            # увеличение ресурсов в секунду
+            i['per_s'] += 0.1
+
+            print(i['name'],\
+            '\nУровень:', i['level'],\
+            '\nЦена улучшения:', pn(i['up_cost']),\
+            '\nХранилище:', pn(i['storage']),\
+            '\nВ секунду:', round(i['per_s'], 1),\
+            '\nДенег за все:', abs(money), '\n')
+
+draw_res_count()

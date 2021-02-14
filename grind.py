@@ -9,7 +9,7 @@ money = 0
 level = 0
 i = 0
 dev_mode = 0
-colors_open = 1
+colors_open = 0
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -17,7 +17,7 @@ help_text = '''\033[35mКоманды\033[0m
 выводит список доступных команд, где 
 наименования в скобках - число или имя
 прдмета, сами скобки указывать не надо.
-        
+
 пример вида команды и его исполнение
 \033[36mup [id] [level]\033[0m
 \033[36mup 1 10\033[0m
@@ -33,6 +33,10 @@ help_text = '''\033[35mКоманды\033[0m
 обновление текущего экрана, допустимо 
 нажатие клавиши enter
 
+\033[36mmain\033[0m
+\033[36mm\033[0m
+венуться на главную станицу
+
 \033[36mexit\033[0m
 \033[36me\033[0m
 выйти из игры, сохранив ее
@@ -44,7 +48,8 @@ help_text = '''\033[35mКоманды\033[0m
 \033[36m[id]\033[0m
 показать данные ресурса, его id,
 число ресурсов, цену одного ресурса,
-цену улучшения и его бонусы
+цену улучшения и его бонусы, для 
+выхода используйте команду main
 
 \033[36msell [name]\033[0m
 \033[36msell [id]\033[0m
@@ -67,9 +72,9 @@ help_text = '''\033[35mКоманды\033[0m
 ресурса или пустой ключ в значение 
 level для улучшения на 1 уровень
 
-\033[36mmain\033[0m
-\033[36mm\033[0m
-венуться на главную станицу
+\033[36mstats\033[0m
+Показывает статистику игрока, для 
+выхода используйте команду main
 
 \033[36mname [name]\033[0m
 изменить имя профиля, допустим ввод
@@ -88,7 +93,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 1.8 No Threading Update'''
+Версия: release 3.0 Stats Update'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -261,6 +266,7 @@ buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд',
              'Красители : 150,000 Хрома']
 
 res_all = []
+stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 # extension
 def draw_name(name):
@@ -312,6 +318,7 @@ def sell(move):
     if move == 'all':
         for i in res_all:
             money += i['count'] * i['price']
+            stats[6] += i['count'] * i['price']
             i['count'] = 0
     else:
         for i in index:
@@ -327,6 +334,7 @@ def sell(move):
 
         if len(res_all) > res_id and res_id != -1:
             money += res_all[res_id]['count'] * res_all[res_id]['price']
+            stats[6] += res_all[res_id]['count'] * res_all[res_id]['price']
             res_all[res_id]['count'] = 0
 
 def res_stat():
@@ -400,9 +408,137 @@ def res_stat():
             print(gap(res_all[index[i['name']] - 10]['name'], 15, 0) + ':', pn(res_all[index[i['name']] - 10]['count']), '\033[0m')
 
             page = i['name']
-        
 
-    else: move = ['']; page = 'main'
+    else: 
+        move = ['']
+        if page != 'stats': page = 'main'
+
+# save and load stats
+if os.path.exists('./stats.dat'):
+    with open('stats.dat', 'r') as f:
+        save = f.read().splitlines()
+        stats = [float(save[0]), save[1], save[2], float(save[3]), float(save[4]), float(save[5]), float(save[6]),
+        float(save[7]), float(save[8]), float(save[9]), float(save[10]), float(save[11]), int(save[12]), int(save[13])]
+
+def save_stats():
+    timestamp = time.time() - stats[0]
+    out = [0, 0, 0, 0]
+    stats[2] = ''
+
+    stats[3] = timestamp // 1
+    stats[4] = timestamp // 60
+    stats[5] = timestamp // 3600
+    stats[10] = stats[6] / timestamp
+
+    while timestamp - 24*60*60 >= 0:
+        out[0] += 1
+        timestamp -= 24*60*60
+
+    while timestamp - 60*60 >= 0:
+        out[1] += 1
+        timestamp -= 60*60
+    
+    while timestamp - 60 >= 0:
+        out[2] += 1
+        timestamp -= 60
+
+    while timestamp - 1 >= 0:
+        out[3] += 1
+        timestamp -= 1
+    
+    if out[0] > 0: stats[2] += str(out[0]) + ' д '
+    if out[1] > 0: stats[2] += str(out[1]) + ' ч '
+    if out[2] > 0: stats[2] += str(out[2]) + ' м '
+    if out[3] > 0: stats[2] += str(out[3]) + ' с '
+
+    stats[12] = 0 
+    if res_all:
+        stats[8] = res_all[0]['storage'] / res_all[0]['per_s']
+        for i in res_all:
+            if i['storage'] / i['per_s'] <= stats[8]: stats[8] = i['storage'] / i['per_s']
+            if i['level'] >= stats[13]: stats[13] = i['level']
+            stats[12] += i['level']
+
+    stats[11] = 0
+    if colors_open:
+        for i in colors:
+            stats[11] += i['per_s'] * i['level']
+            stats[12] += i['level']
+
+    if money >= stats[9]: stats[9] = money
+    
+    with open('stats.dat', 'w') as f:
+        for i in range(len(stats)):
+            f.write(str(stats[i]) + '\n')
+
+    timestamp = time.time()
+
+def draw_stats():
+    os.system('clear')
+    timestamp = stats[7]
+    out = [0, 0, 0, 0]
+    while timestamp - 24*60*60 >= 0:
+        out[0] += 1
+        timestamp -= 24*60*60
+
+    while timestamp - 60*60 >= 0:
+        out[1] += 1
+        timestamp -= 60*60
+    
+    while timestamp - 60 >= 0:
+        out[2] += 1
+        timestamp -= 60
+
+    while timestamp - 1 >= 0:
+        out[3] += 1
+        timestamp -= 1
+    
+    max_offline = ''
+
+    if out[0] > 0: max_offline += str(out[0]) + ' д '
+    if out[1] > 0: max_offline += str(out[1]) + ' ч '
+    if out[2] > 0: max_offline += str(out[2]) + ' м '
+    if out[3] > 0: max_offline += str(out[3]) + ' с '
+
+    timestamp = stats[8]
+    out = [0, 0, 0, 0]
+    best_offline = ''
+    while timestamp - 24*60*60 >= 0:
+        out[0] += 1
+        timestamp -= 24*60*6
+
+    while timestamp - 60*60 >= 0:
+        out[1] += 1
+        timestamp -= 60*60
+    
+    while timestamp - 60 >= 0:
+        out[2] += 1
+        timestamp -= 60
+
+    while timestamp - 1 >= 0:
+        out[3] += 1
+        timestamp -= 1
+    
+    if out[0] > 0: best_offline += str(out[0]) + ' д '
+    if out[1] > 0: best_offline += str(out[1]) + ' ч '
+    if out[2] > 0: best_offline += str(out[2]) + ' м '
+    if out[3] > 0: best_offline += str(out[3]) + ' с '
+
+    print('Статистика игрока', name,
+        '\n\nНачало игры :', stats[1],
+        '\nВремя игры  :', stats[2],
+        '\n\nСекунд получено :', pn(stats[3]), 
+        '\nМинут получено  :', pn(stats[4]),
+        '\nЧасов получено  :', pn(stats[5]),
+        '\nДенег получено  :', pn(stats[6]) + '$',
+        '\n\nМаксимальное время в афк :', max_offline,
+        '\nПрибыльное время в афк   :', best_offline,
+        '\n\nДеньги                       :', pn(money) + '$',
+        '\nМаксимум денег в кошельке    :', pn(stats[9]) + '$',
+        '\nДенег в секунду за все время :', pn(stats[10]) + '$ / c',
+        '\nДенег в секунду за красители :', pn(stats[11]) + '$ / c',
+        '\n\nУровней куплено      :', pn(stats[12]),
+        '\nМаксимальный уровень :', stats[13])
 
 # save and load
 def save_res_update(res, offset):
@@ -451,15 +587,20 @@ if os.path.exists('./save.dat'):
                 colors[i]['up_cost'] = int(save[81 + i*2])
                 colors[i]['level'] = int(save[82 + i*2])
 
-
         # offline encounter
         os.system('clear')
         timestamp = time.time() - timestamp
+        if stats[7] <= timestamp: stats[7] = timestamp
         timestamp = round(timestamp)
         print('С возвращением, ' + name + '\nВас не было в игре:\n')
         offline_sec = timestamp
         offline_min = 0
         offline_hrs = 0
+        offline_days = 0
+
+        while offline_days - 3600*24 >= 1:
+            offline_days += 1
+            offline_sec -= 3600*24
 
         while offline_sec - 3600 >= 1:
             offline_hrs += 1
@@ -468,9 +609,13 @@ if os.path.exists('./save.dat'):
         while offline_sec - 60 >= 1:
             offline_min += 1
             offline_sec -= 60
-        
-        print(offline_hrs,' ч ', offline_min, ' мин ', offline_sec, ' с', sep='')
-        print('\nВы получили:\n')
+
+        if offline_days > 0: print(offline_days, 'д ', end='')
+        if offline_hrs > 0: print(offline_hrs, 'ч ', end='')
+        if offline_min > 0: print(offline_min, 'м ', end='')
+        if offline_sec > 0: print(offline_sec, 'с ', end='')
+
+        print('\n\nВы получили:\n')
         
         median = money
         if colors_open:
@@ -494,7 +639,7 @@ if os.path.exists('./save.dat'):
             if i['per_s'] * timestamp + i['count'] < i['storage']: print(draw_name(i['name']), pn(i['per_s'] * timestamp))
             else: print('\033[31m'+draw_name(i['name']), pn(i['storage'] - i['count']) + '\033[0m')
             res_all[index[i['name']]]['count'] += i['per_s'] * timestamp 
-            if i['count'] > i['storage']:i['count'] = i['storage']
+            if i['count'] > i['storage']: i['count'] = i['storage']
 
         res_time['seconds'] += timestamp
         res_time['minutes'] += timestamp//60
@@ -603,8 +748,8 @@ def draw_res():
         '\033[34m█ Синий краситель             \033[0m|',
         '\033[35m█ Фиолетовый краситель        \033[0m|']
         for i in range(len(colors)):
-
             print(text[i], upgradable(colors[i]['up_cost'], colors[i]['level'], i), pn(colors[i]['per_s'] * colors[i]['level']) + '$ / с')
+
 # game loops
 def progress():
     global res_time, level, timestamp, colors, colors_open, money
@@ -638,7 +783,9 @@ def progress():
     if colors_open:
         for i in colors:
             money += i['per_s'] * i['level'] * timestamp
+            stats[6] += i['per_s'] * i['level'] * timestamp
 
+    if money >= stats[9]: stats[9] = money
     timestamp = time.time()
 
 def game_render():
@@ -650,21 +797,23 @@ def game_render():
             draw_res()
             draw_buy()
         
+        elif page == 'stats':
+            save_stats()
+            draw_stats()
+        
         elif page != 'start':
             res_stat()
 
-        if dev_mode: print('\nws:', res_time['wait_seconds'], \
-            '\nwm:', res_time['wait_minutes'], \
-            '\nwh:', res_time['wait_hours'], \
-            '\nut:', time.time(),\
-            '\npg:', page, \
-            '\nco:', colors_open,\
+        if dev_mode: print('\nws:', res_time['wait_seconds'],
+            '\nwm:', res_time['wait_minutes'],
+            '\nwh:', res_time['wait_hours'],
+            '\nut:', time.time(),
+            '\npg:', page,
+            '\nco:', colors_open,
             '\nb0:', buy[0])
 
         if page != 'start': move = input('\nДействие  : ').split(' ')
         else: page = 'main'
-
-        if page == 'start': page = 'main'
 
         i = 0
         try: 
@@ -675,21 +824,27 @@ def game_render():
                 i = res_all[int(move[0]) - 1]
             except Exception: pass
         if i != 0:
-            if page != i['name']:
+            if page != i['name'] and page != 'stats':
                 page = 'main'
 
         progress()
+        
+        if move[0] == 'help':
+            os.system('clear')
+            print(help_text)
+            move = input('\nДействие : ').split(' ')
+
+        if move[0] == 'stats':
+            save_stats()
+            draw_stats()
+            page = 'stats'
+            # move = input('\nДействие : ').split(' ')
         
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
             save_game()
             game_exit = 1
             os.system('clear')
             os._exit(1)
-        
-        if move[0] == 'help':
-            os.system('clear')
-            print(help_text)
-            move = input('\nДействие : ').split(' ')
         
         if move[0] == 'open' and buy[0] <= 12:
             if buy[1] == 1:
@@ -829,7 +984,7 @@ def game_render():
         
         if move[0] == 'save' or move[0] == 's':
             save_game()
-        
+    
         if len(move) >= 3:
             if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
                 os.system('rm ./save.dat')
@@ -841,7 +996,7 @@ def game_render():
 
         if move[0] == 'main' or move[0] == 'm':
             page = 'main'
-            
+
         else: res_stat()
 
 game_render()
