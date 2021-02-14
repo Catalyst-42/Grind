@@ -93,7 +93,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 3.0 Stats Update'''
+Версия: release 3.1 Stats Update (optimization fix)'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -338,8 +338,8 @@ def sell(move):
             res_all[res_id]['count'] = 0
 
 def res_stat():
-    draw_header()
     global move, page, previous
+    if page != 'stats': draw_header()
     i = 0
     if move[0].isalpha(): move[0] = move[0].capitalize()
     
