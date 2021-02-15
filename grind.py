@@ -325,26 +325,28 @@ def res_stat():
             i = res_all[int(move[0]) - 1]
             print('\n' + move[0] + '.', i['name'] + ' \n')
         except Exception:
-            if colors_open:
+            try:
+                if not colors_open: raise Exception("Exec")
+                i = colors[int(move[0]) - 11]
+                print('\n' + move[0] + '.', i['name'] + ' краситель\n')
+            except Exception: 
                 try:
-                    i = colors[int(move[0]) - 11]
-                    print('\n' + move[0] + '.', i['name'] + ' краситель\n')
+                    if not colors_open: raise Exception("Exec")
+                    i = colors[index[move[0]] - 10]
+                    print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
                 except Exception: 
-                    try:
-                        i = colors[index[move[0]] - 10]
-                        print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
-                    except Exception: 
-                        move[0] = page
-                        try: 
-                            res_id = index[move[0]]
-                            i = res_all[res_id]
-                            print('\n' + str(res_id+1) + '.', move[0] + ' \n')
-                        except Exception:
-                            try:
-                                i = colors[index[move[0]] - 10]
-                                print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
-                            except Exception: pass
-
+                    move[0] = page
+                    try: 
+                        res_id = index[move[0]]
+                        i = res_all[res_id]
+                        print('\n' + str(res_id+1) + '.', move[0] + ' \n')
+                    except Exception:
+                        try:
+                            if not colors_open: raise Exception("Exec")
+                            i = colors[index[move[0]] - 10]
+                            print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                        except Exception: pass
+        
     if i:
         if index[i['name']] < 10:
             print('Колличество :', pn(i['count']),\
