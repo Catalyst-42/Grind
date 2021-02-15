@@ -14,20 +14,7 @@ colors_open = 0
 help_text = '''\033[35mКоманды\033[0m
 
 \033[36mhelp\033[0m
-выводит список доступных команд, где 
-наименования в скобках - число или имя
-прдмета, сами скобки указывать не надо.
-
-пример вида команды и его исполнение
-\033[36mup [id] [level]\033[0m
-\033[36mup 1 10\033[0m
-улучшить первый предмет на 10 уровней
-
-пример сокращенного имени
-\033[36mexit\033[0m
-\033[36me\033[0m
-кажда из команд будет выполнять одну,
-указанную в описании функцию
+выводит список доступных команд
 
 \033[36menter\033[0m
 обновление текущего экрана, допустимо 
@@ -337,25 +324,26 @@ def res_stat():
         try:
             i = res_all[int(move[0]) - 1]
             print('\n' + move[0] + '.', i['name'] + ' \n')
-        except Exception: 
-            try:
-                i = colors[int(move[0]) - 11]
-                print('\n' + move[0] + '.', i['name'] + ' краситель\n')
-            except Exception: 
+        except Exception:
+            if colors_open:
                 try:
-                    i = colors[index[move[0]] - 10]
-                    print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                    i = colors[int(move[0]) - 11]
+                    print('\n' + move[0] + '.', i['name'] + ' краситель\n')
                 except Exception: 
-                    move[0] = page
-                    try: 
-                        res_id = index[move[0]]
-                        i = res_all[res_id]
-                        print('\n' + str(res_id+1) + '.', move[0] + ' \n')
-                    except Exception:
-                        try:
-                            i = colors[index[move[0]] - 10]
-                            print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
-                        except Exception: pass
+                    try:
+                        i = colors[index[move[0]] - 10]
+                        print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                    except Exception: 
+                        move[0] = page
+                        try: 
+                            res_id = index[move[0]]
+                            i = res_all[res_id]
+                            print('\n' + str(res_id+1) + '.', move[0] + ' \n')
+                        except Exception:
+                            try:
+                                i = colors[index[move[0]] - 10]
+                                print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                            except Exception: pass
 
     if i:
         if index[i['name']] < 10:
@@ -481,8 +469,8 @@ def draw_stats():
         '\nЧасов получено  :', pn(stats[5]),
         '\n\nМаксимальное время в афк :', max_offline,
         '\nПрибыльное время в афк   :', best_offline,
-        '\nДенег получено  :', pn(stats[6]) + '$',
-        '\n\nДеньги                       :', pn(money) + '$',
+        '\n\nДенег получено               :', pn(stats[6]) + '$',
+        '\nДеньги                       :', pn(money) + '$',
         '\nМаксимум денег в кошельке    :', pn(stats[9]) + '$',
         '\nДенег в секунду за все время :', pn(stats[10]) + '$ / c')
     if colors_open: print('Денег в секунду за красители :', pn(stats[11]) + '$ / c')
@@ -793,6 +781,7 @@ def game_render():
         
         if move[0] == 'quit' or move[0] == 'exit' or move[0] == 'e':
             save_game()
+            save_stats()
             game_exit = 1
             os.system('clear')
             os._exit(1)
