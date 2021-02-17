@@ -262,12 +262,12 @@ def draw_res_count():
                 'per_s': 0.5,
                 'level': 1}
 
-    res_all = [res_stone, res_wood, res_coal, res_fabric, res_copper, res_steel, res_gold, res_uranium, res_klit, res_chromium]
-    res_levels = [300, 250, 250, 250, 250, 250, 235, 235, 235 ,215]
+    res_all = [res_chromium]
+    res_levels = [235]
 
     for number in range(len(res_all)):
         i = res_all[number]
-        for loop in range(res_levels[number] - 2):
+        for loop in range(res_levels[number] - 1):
             money -= i['up_cost']
             i['level'] += 1
             # увеличение цены продажи
@@ -291,6 +291,6 @@ def draw_res_count():
             '\nЦена улучшения:', pn(i['up_cost']),\
             '\nХранилище:', pn(i['storage']),\
             '\nВ секунду:', round(i['per_s'], 1),\
-            '\nДенег за все:', abs(money), '\n')
+            '\nДенег за все:', pn(abs(money)), '\n')
 
 draw_res_count()
