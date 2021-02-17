@@ -80,7 +80,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 3.1 Stats Update (optimization fix)'''
+Версия: release 3.2 Colors And Stats Polished'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -218,12 +218,23 @@ colors = [
     {'name': 'Фиолетовый',
     'up_cost': 10000,
     'per_s': 800000,
+    'level': 0},
+    
+    {'name': 'Черный',
+    'up_cost': 10000,
+    'per_s': 900000,
+    'level': 0},
+    
+    {'name': 'Блестки',
+    'up_cost': 10000,
+    'per_s': 1000000,
     'level': 0}
 ]
 
 index = {'Камень': 0, 'Дерево': 1, 'Уголь': 2, 'Ткань': 3, 'Медь': 4, 'Железо': 5, 
          'Золото': 6, 'Уран': 7, 'Кремнелит': 8, 'Хром': 9, 'Белый': 10, 'Серый': 11, 
-         'Красный': 12, 'Желтый': 13, 'Зеленый': 14,'Бирюзовый': 15, 'Синий': 16, 'Фиолетовый': 17}
+         'Красный': 12, 'Желтый': 13, 'Зеленый': 14,'Бирюзовый': 15, 'Синий': 16, 'Фиолетовый': 17,
+         'Черный': 18, 'Блестки': 19}
 
 buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд', 
              'Дерево    : 10 минут;\n            50 камней', 
@@ -238,7 +249,7 @@ buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд',
              'Красители : 150,000 Хрома']
 
 res_all = []
-stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 # extension
 def draw_name(name):
@@ -377,7 +388,7 @@ def res_stat():
 
             if res_all[index[i['name']] - 10]['count'] >= i['up_cost']: print('\033[32m', end='')
             else: print('\033[31m', end='')
-            text = ['Камня', 'Дерева', 'Угля', 'Ткани', 'Меди', 'Железа', 'Золота', 'Урана']
+            text = ['Камня', 'Дерева', 'Угля', 'Ткани', 'Меди', 'Железа', 'Золота', 'Урана', 'Кремнелита', 'Хрома']
             print('\nУлучшение\n', '\n$ В секунду : +' + pn(i['per_s']) + '$' )
             print('\nЦена улучшения :', pn(i['up_cost']) + ' ' + text[index[i['name']] - 10])
             print(gap(res_all[index[i['name']] - 10]['name'], 15, 0) + ':', pn(res_all[index[i['name']] - 10]['count']), '\033[0m')
@@ -420,7 +431,8 @@ if os.path.exists('./stats.dat'):
     with open('stats.dat', 'r') as f:
         save = f.read().splitlines()
         stats = [float(save[0]), save[1], save[2], float(save[3]), float(save[4]), float(save[5]), float(save[6]),
-        float(save[7]), float(save[8]), float(save[9]), float(save[10]), float(save[11]), int(save[12]), int(save[13])]
+        float(save[7]), float(save[8]), float(save[9]), float(save[10]), float(save[11]), int(save[12]), int(save[13]), 
+        float(save[14])]
 
     f.close()
 
@@ -435,13 +447,15 @@ def save_stats():
 
     stats[2] = text_time(timestamp)
 
-    stats[12] = 0 
+    stats[12] = 0
+    stats[14] = 0
     if res_all:
         stats[8] = res_all[0]['storage'] / res_all[0]['per_s']
         for i in res_all:
             if i['storage'] / i['per_s'] <= stats[8]: stats[8] = i['storage'] / i['per_s']
             if i['level'] >= stats[13]: stats[13] = i['level']
             stats[12] += i['level']
+            stats[14] += i['per_s'] * i['price']
 
     stats[11] = 0
     if colors_open:
@@ -472,9 +486,10 @@ def draw_stats():
         '\n\nМаксимальное время в афк :', max_offline,
         '\nПрибыльное время в афк   :', best_offline,
         '\n\nДенег получено               :', pn(stats[6]) + '$',
-        '\nДеньги                       :', pn(money) + '$',
         '\nМаксимум денег в кошельке    :', pn(stats[9]) + '$',
-        '\nДенег в секунду за все время :', pn(stats[10]) + '$ / c')
+        '\nДеньги                       :', pn(money) + '$',
+        '\n\nДенег в секунду за все время :', pn(stats[10]) + '$ / c',
+        '\nДенег в секунду за ресурсы   :', pn(stats[14]) + '$ / c')
     if colors_open: print('Денег в секунду за красители :', pn(stats[11]) + '$ / c')
     print('\nУровней куплено      :', pn(stats[12]),
         '\nМаксимальный уровень :', stats[13])
@@ -687,7 +702,9 @@ def draw_res():
         '\033[32m█ Зеленый краситель           \033[0m|',
         '\033[36m█ Бирюзовый краситель         \033[0m|',
         '\033[34m█ Синий краситель             \033[0m|',
-        '\033[35m█ Фиолетовый краситель        \033[0m|']
+        '\033[35m█ Фиолетовый краситель        \033[0m|',
+        '░ Черный краситель            |',
+        '▒ Блестки                     |']
         for i in range(len(colors)):
             print(text[i], upgradable(colors[i]['up_cost'], colors[i]['level'], i), pn(colors[i]['per_s'] * colors[i]['level']) + '$ / с')
 
