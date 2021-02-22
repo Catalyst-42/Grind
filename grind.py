@@ -80,7 +80,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 3.2 Colors And Stats Polished'''
+Версия: release 3.3 Colors And Stats Update - time view fix'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -556,7 +556,7 @@ if os.path.exists('./save.dat'):
         offline_hrs = 0
         offline_days = 0
 
-        while offline_days - 3600*24 >= 1:
+        while offline_sec - 3600*24 >= 1:
             offline_days += 1
             offline_sec -= 3600*24
 
@@ -568,10 +568,7 @@ if os.path.exists('./save.dat'):
             offline_min += 1
             offline_sec -= 60
 
-        if offline_days > 0: print(offline_days, 'д ', end='')
-        if offline_hrs > 0: print(offline_hrs, 'ч ', end='')
-        if offline_min > 0: print(offline_min, 'м ', end='')
-        print(offline_sec, 'с ', end='')
+        print(text_time(timestamp))
 
         print('\n\nВы получили:\n')
         
