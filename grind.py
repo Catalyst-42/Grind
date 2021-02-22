@@ -339,12 +339,14 @@ def res_stat():
             try:
                 if not colors_open: raise Exception("Exec")
                 i = colors[int(move[0]) - 11]
-                print('\n' + move[0] + '.', i['name'] + ' краситель\n')
+                if i['name'] != 'Блестки': print('\n' + move[0] + '.', i['name'] + ' краситель\n')
+                else: print('\n20. Блестки\n')
             except Exception: 
                 try:
                     if not colors_open: raise Exception("Exec")
                     i = colors[index[move[0]] - 10]
-                    print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                    if i['name'] != 'Блестки': print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                    else: print('\n20. Блестки\n')
                 except Exception: 
                     move[0] = page
                     try: 
@@ -355,16 +357,18 @@ def res_stat():
                         try:
                             if not colors_open: raise Exception("Exec")
                             i = colors[index[move[0]] - 10]
-                            print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                            if i['name'] != 'Блестки': print('\n' + str(index[move[0]] + 1) + '.', i['name'] + ' краситель\n')
+                            else: print('\n20. Блестки\n')
                         except Exception: pass
         
     if i:
         if index[i['name']] < 10:
-            print('Колличество :', pn(i['count']),\
-                '\nХранилище   :', pn(round(i['storage'])),\
-                '\nСтоимость 1 :', pn(i['price']) + '$',\
-                '\nВ секунду   :', round(i['per_s'], 2),\
-                '\nУровень     :', pn(i['level']),\
+            print('Колличество :', pn(i['count']),
+                '\nХранилище   :', pn(round(i['storage'])),
+                '\nСтоимость 1 :', pn(i['price']) + '$',
+                '\nВ секунду   :', round(i['per_s'], 2),
+                '\n$ в секунду :', pn(i['per_s'] * i['price']) + '$',
+                '\nУровень     :', pn(i['level']),
                 '\n\nУлучшение\n')
 
             if money >= i['up_cost']: print('\033[32m', end='')
@@ -384,7 +388,7 @@ def res_stat():
             page = i['name']
 
         elif colors_open: 
-            print('$ В секунду :', pn(i['per_s'] * i['level']) + '$', '\nУровень     :', pn(i['level']))
+            print('$ в секунду :', pn(i['per_s'] * i['level']) + '$', '\nУровень     :', pn(i['level']))
 
             if res_all[index[i['name']] - 10]['count'] >= i['up_cost']: print('\033[32m', end='')
             else: print('\033[31m', end='')
@@ -749,7 +753,7 @@ def progress():
 def game_render():
     while 1:
         global money, move, name, page, dev_mode, colors_open, colors
-
+        
         if page == 'main':
             draw_header()
             draw_res()
