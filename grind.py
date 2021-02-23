@@ -10,6 +10,7 @@ level = 0
 i = 0
 dev_mode = 0
 colors_open = 0
+pn_mode = 0
 
 help_text = '''\033[35mКоманды\033[0m
 
@@ -59,6 +60,11 @@ help_text = '''\033[35mКоманды\033[0m
 ресурса или пустой ключ в значение 
 level для улучшения на 1 уровень
 
+\033[36mnumber style [style]\033[0m
+Меняет вид отображения чисел в игре, где 
+вид 0: 124,239,023
+вид 1: 124.23\033[36mk\033[0m
+
 \033[36mstats\033[0m
 Показывает статистику игрока, для 
 выхода используйте команду main
@@ -80,7 +86,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 3.3 Colors And Stats Update - time view fix'''
+Версия: release 4.0 Number View Update'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -255,22 +261,24 @@ stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 
 def draw_name(name):
     return name + ' ' * (10 - len(name)) + ':'
 
-def pn(number):
+def pn(number, recolor=0, mode=0):
+    mode += pn_mode
     number = round(number)
-    if number >= 1000:
-        iteration = 3
-        iter_dash = 0
-        out = str(number)
-        while iteration < len(str(number)):
-            out = out[:-iteration-iter_dash] + ',' + out[-iteration-iter_dash:]
-            iteration += 3
-            iter_dash += 1
-        return out
-    else: return str(number)
+    if not mode:
+        return '{:,}'.format(number) + ' '
 
-def gap(name, length=17, pointed=1):
-    if pointed: return (' ' * (length - len(pn(name))))
-    else: return name + (' ' * (length - len(name)))
+    else:
+        number = str(round(number))
+        number_backup = number
+        scale = ['', 'k ', 'm ', 'b ', 'q ', 'Q ']
+        scale_point = 0
+        while len(number) > 3:
+            number = number[:-3]
+            scale_point += 1
+        if scale_point > 0: number += '.' + number_backup[1:3]
+
+        if recolor: return number +  scale[scale_point]
+        else: return number + '\033[36m' + scale[scale_point] + '\033[0m'
 
 def draw_storage(count, max_count):
     percents = round(count / max_count * 100)
@@ -323,6 +331,8 @@ def sell(move):
 def res_stat():
     global move, page, previous
     if page != 'stats': draw_header()
+    else: os.system('clear')
+    
     i = 0
     if move[0].isalpha(): move[0] = move[0].capitalize()
     
@@ -363,26 +373,28 @@ def res_stat():
         
     if i:
         if index[i['name']] < 10:
-            print('Колличество :', pn(i['count']),
-                '\nХранилище   :', pn(round(i['storage'])),
-                '\nСтоимость 1 :', pn(i['price']) + '$',
-                '\nВ секунду   :', round(i['per_s'], 2),
-                '\n$ в секунду :', pn(i['per_s'] * i['price']) + '$',
-                '\nУровень     :', pn(i['level']),
+            print('Колличество   :', pn(i['count']),
+                '\nХранилище     :', pn(round(i['storage'])),
+                '\nСтоимость 1   :', pn(i['price']) + '$',
+                '\nВ секунду     :', round(i['per_s'], 2),
+                '\n$ в секунду   :', pn(i['per_s'] * i['price']) + '$',
+                '\n$ за все      :', pn(i['count'] * i['price']) + '$',
+                '\nДо заполнения :', text_time((i['storage'] - i['count']) / i['per_s']),
+                '\nУровень       :', pn(i['level']),
                 '\n\nУлучшение\n')
 
             if money >= i['up_cost']: print('\033[32m', end='')
             else: print('\033[31m', end='')
             
-            if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage']))
-            else: print('Хранилище   :', '+' + pn(i['level'] * 1.5))
+            if (i['level'] + 1) % 50 == 0: print('Хранилище   :', '+' + pn(i['storage'], recolor=1))
+            else: print('Хранилище   :', '+' + pn(i['level'] * 1.5, recolor=1))
             
-            if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + pn(i['price'] + i['price_start']*2) + '$')
-            else: print('Стоимость 1 :', '+' + pn(i['price_start']) + '$' )
+            if (i['level'] + 1) % 100 == 0: print('Стоимость 1 :', '+' + pn(i['price'] + i['price_start']*2, recolor=1) + '$')
+            else: print('Стоимость 1 :', '+' + pn(i['price_start'], recolor=1) + '$' )
             
             print('В секунду   :', '+0.1',\
-                '\n\nЦена улучшения :', pn(i['up_cost']) + '$',\
-                '\nДеньги         :', pn(money) + '$',\
+                '\n\nЦена улучшения :', pn(i['up_cost'], recolor=1) + '$',\
+                '\nДеньги         :', pn(money, recolor=1) + '$',\
                 '\033[0m')
             
             page = i['name']
@@ -390,12 +402,12 @@ def res_stat():
         elif colors_open: 
             print('$ в секунду :', pn(i['per_s'] * i['level']) + '$', '\nУровень     :', pn(i['level']))
 
-            if res_all[index[i['name']] - 10]['count'] >= i['up_cost']: print('\033[32m', end='')
-            else: print('\033[31m', end='')
+            if res_all[index[i['name']] - 10]['count'] >= i['up_cost']: print('\033[32m', end=''); color = '\033[32m'
+            else: print('\033[31m', end=''); color = '\033[31m'
             text = ['Камня', 'Дерева', 'Угля', 'Ткани', 'Меди', 'Железа', 'Золота', 'Урана', 'Кремнелита', 'Хрома']
-            print('\nУлучшение\n', '\n$ В секунду : +' + pn(i['per_s']) + '$' )
-            print('\nЦена улучшения :', pn(i['up_cost']) + ' ' + text[index[i['name']] - 10])
-            print(gap(res_all[index[i['name']] - 10]['name'], 15, 0) + ':', pn(res_all[index[i['name']] - 10]['count']), '\033[0m')
+            print('\nУлучшение\n', '\n$ В секунду : +' + pn(i['per_s'], recolor=1) + '$' )
+            print('\nЦена улучшения :', pn(i['up_cost'], recolor=1) + ' ' + text[index[i['name']] - 10])
+            print('{:15}'.format(res_all[index[i['name']] - 10]['name']) + ':', pn(res_all[index[i['name']] - 10]['count'], recolor=1), '\033[0m')
 
             page = i['name']
 
@@ -493,21 +505,22 @@ def draw_stats():
         '\nМаксимум денег в кошельке    :', pn(stats[9]) + '$',
         '\nДеньги                       :', pn(money) + '$',
         '\n\nДенег в секунду за все время :', pn(stats[10]) + '$ / c',
-        '\nДенег в секунду за ресурсы   :', pn(stats[14]) + '$ / c')
-    if colors_open: print('Денег в секунду за красители :', pn(stats[11]) + '$ / c')
-    print('\nУровней куплено      :', pn(stats[12]),
+        '\nДенег в секунду за ресурсы   :', pn(stats[14]) + '$ / c', end='')
+    if colors_open: print('\nДенег в секунду за красители :', pn(stats[11]) + '$ / c', end='')
+    print('\nСуммарно денег в секунду     :', pn(stats[14] + stats[11]) + '$ / c',
+        '\n\nУровней куплено      :', pn(stats[12]),
         '\nМаксимальный уровень :', stats[13])
 
 # save and load
 def save_res_update(res, offset):
     offset = offset * 7
-    res['count'] = float(save[11 + offset])
-    res['price'] = int(save[12 + offset])
-    res['price_start'] = int(save[13 + offset])
-    res['up_cost'] = float(save[14 + offset])
-    res['storage'] = float(save[15 + offset])
-    res['per_s'] = float(save[16 + offset])
-    res['level'] = int(save[17 + offset])
+    res['count'] = float(save[12 + offset])
+    res['price'] = int(save[13 + offset])
+    res['price_start'] = int(save[14 + offset])
+    res['up_cost'] = float(save[15 + offset])
+    res['storage'] = float(save[16 + offset])
+    res['per_s'] = float(save[17 + offset])
+    res['level'] = int(save[18 + offset])
 
 if os.path.exists('./save.dat'):
     with open('save.dat', 'r') as f:
@@ -528,6 +541,7 @@ if os.path.exists('./save.dat'):
         res_time['wait_hours'] = float(save[8])
         save[8] = int(save[9])
         colors_open = int(save[10])
+        pn_mode = int(save[11])
 
         # res loop
         buy[0] = save[8]
@@ -542,8 +556,8 @@ if os.path.exists('./save.dat'):
 
         if colors_open:
             for i in range(len(colors)):
-                colors[i]['up_cost'] = int(save[81 + i*2])
-                colors[i]['level'] = int(save[82 + i*2])
+                colors[i]['up_cost'] = int(save[82 + i*2])
+                colors[i]['level'] = int(save[83 + i*2])
 
         # offline encounter
         os.system('clear')
@@ -570,7 +584,7 @@ if os.path.exists('./save.dat'):
 
         print(text_time(timestamp))
 
-        print('\n\nВы получили:\n')
+        print('\nВы получили:\n')
         
         median = money
         if colors_open:
@@ -622,6 +636,7 @@ def save_game():
         f.write(str(res_time['wait_hours'])  + '\n')
         f.write(str(buy[0])  + '\n')
         f.write(str(colors_open) + '\n')
+        f.write(str(pn_mode) + '\n')
 
         for i in res_all:
             f.write(str(i['count'])  + '\n')
@@ -639,9 +654,11 @@ def save_game():
 # functions
 def draw_header():
     os.system('clear')
-    print('Секунды   :', pn(res_time['seconds']), gap(res_time['seconds']) + '| Профиль :', name)
-    print('Минуты    :', pn(res_time['minutes']), gap(res_time['minutes']) + '| Уровень :', pn(level))
-    print('Часы      :', pn(res_time['hours']), gap(res_time['hours']) + '| Деньги  :', pn(money) + '$')
+    if pn_mode == 0: tab = 17
+    else: tab = 26
+    print('Секунды   :', '{0:{1}}'.format(pn(res_time['seconds']), tab), '| Профиль :', name)
+    print('Минуты    :', '{0:{1}}'.format(pn(res_time['minutes']), tab), '| Уровень :', pn(level))
+    print('Часы      :', '{0:{1}}'.format(pn(res_time['hours']), tab), '| Деньги  :', pn(money) + '$')
 
 def draw_buy():
     if buy[0] <= 12:
@@ -749,7 +766,7 @@ def progress():
 
 def game_render():
     while 1:
-        global money, move, name, page, dev_mode, colors_open, colors
+        global money, move, name, page, dev_mode, colors_open, colors, pn_mode
         
         if page == 'main':
             draw_header()
@@ -769,7 +786,8 @@ def game_render():
             '\nut:', time.time(),
             '\npg:', page,
             '\nco:', colors_open,
-            '\nb0:', buy[0])
+            '\nb0:', buy[0],
+            '\nnm:', pn(100), pn(1234), pn(1234567), pn(1234567891), pn(1234567890123), pn(1234567890123456))
 
         if page != 'start': move = input('\nДействие  : ').split(' ')
         else: page = 'main'
@@ -939,20 +957,24 @@ def game_render():
 
                     else: break
         
-        if move[0] == 'name':
-            name = move[1]
-        
         if move[0] == 'save' or move[0] == 's':
             save_game()
     
         if len(move) >= 3:
             if move[0] == 'delete' and move[1] == 'save' and move[2] == name:
                 os.system('rm ./save.dat')
+
+            if move[0] == 'number' and move[1] == 'style':
+                try: pn_mode = int(move[2])
+                except Exception: pass
         
         if len(move) >= 2:
             if move[0] == 'developer' and move[1] == 'mode':
                 if dev_mode == 0: dev_mode = 1
                 else: dev_mode = 0
+
+            if move[0] == 'name':
+                name = move[1]
 
         if move[0] == 'main' or move[0] == 'm':
             page = 'main'
