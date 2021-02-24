@@ -86,7 +86,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 4.0 Number View Update'''
+Версия: release 4.1 Number View Update & open command fix'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -245,14 +245,25 @@ index = {'Камень': 0, 'Дерево': 1, 'Уголь': 2, 'Ткань': 3,
 buy = [2, 0, 'Камень    : 1 минута;\n            10 секунд', 
              'Дерево    : 10 минут;\n            50 камней', 
              'Уголь     : 5 часов;\n            30,000 дерева', 
-             'Ткань     : 100,000,000$;\n            10,000 угля;\n            600 минут', 
-             'Медь      : 10,000,000,000$;\n            15 часов;\n            50,000 ткани', 
+             'Ткань     : 100,000,000 $;\n            10,000 угля;\n            600 минут', 
+             'Медь      : 10,000,000,000 $;\n            15 часов;\n            50,000 ткани', 
              'Железо    : 24 часа;\n            100,000,000,000$', 
-             'Золото    : 300,000 секунд;\n            500,000,000,000$', 
-             'Уран      : 1 секунда;\n            1,000,000,000,000$',
-             'Кремнелит : 200 часов;\n            10,000,000,000,000$',
+             'Золото    : 300,000 секунд;\n            500,000,000,000 $', 
+             'Уран      : 1 секунда;\n            1,000,000,000,000 $',
+             'Кремнелит : 200 часов;\n            10,000,000,000,000 $',
              'Хром      : 1,000,000 секунд;\n            150,000 Золота;\n            150,000 Урана;\n            150,000 Кремнелита',
-             'Красители : 150,000 Хрома']
+             'Красители : 150,000 Хрома',
+             'Камень    : 1 минута;\n            10 секунд', 
+             'Дерево    : 10 минут;\n            50 камней', 
+             'Уголь     : 5 часов;\n            30k дерева', 
+             'Ткань     : 100m $;\n            10k угля;\n            600 минут', 
+             'Медь      : 10b $;\n            15 часов;\n            50k ткани', 
+             'Железо    : 24 часа;\n            100b $', 
+             'Золото    : 300k секунд;\n            500b $', 
+             'Уран      : 1 секунда;\n            1q $',
+             'Кремнелит : 200 часов;\n            10q $',
+             'Хром      : 1m секунд;\n            150k Золота;\n            150k Урана;\n            150k Кремнелита',
+             'Красители : 150k Хрома']
 
 res_all = []
 stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -261,24 +272,26 @@ stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 
 def draw_name(name):
     return name + ' ' * (10 - len(name)) + ':'
 
-def pn(number, recolor=0, mode=0):
-    mode += pn_mode
-    number = round(number)
+def pn(number, recolor=0, mode=1):
     if not mode:
+        number = int(number)
         return '{:,}'.format(number) + ' '
 
     else:
-        number = str(round(number))
-        number_backup = number
+        number = str(int(number))
         scale = ['', 'k ', 'm ', 'b ', 'q ', 'Q ']
         scale_point = 0
-        while len(number) > 3:
-            number = number[:-3]
-            scale_point += 1
-        if scale_point > 0: number += '.' + number_backup[1:3]
+
+        for i in range(15, 0, -3):
+            if len(number) > i:
+                number = str(int(number) / int('1' + '0'*i))
+                number = number.rpartition('.')[0] + '.' + number.rpartition('.')[2][:2]
+                scale_point = int(i / 3)
+                break
 
         if recolor: return number +  scale[scale_point]
         else: return number + '\033[36m' + scale[scale_point] + '\033[0m'
+
 
 def draw_storage(count, max_count):
     percents = round(count / max_count * 100)
@@ -292,7 +305,7 @@ def draw_storage(count, max_count):
         out += '.'
         iteration += 1
 
-    return out + '] ' + str(percents) + '%' + ' ' * (3 - len(str(percents)))
+    return out + '] ' + '{0:{1}}'.format(str(percents) + '%', 4)
 
 def upgradable(up_cost, level, color='none'):
     level = str(level)
@@ -701,7 +714,7 @@ def draw_buy():
             if res_all[9]['count'] >= 150000:
                 buy[1] = 1
 
-        if buy[1] == 1: print('\n' + buy[buy[0]])
+        if buy[1] == 1: print('\n\033[32m' + buy[buy[0] + pn_mode*11] + '\033[0m')
 
 def draw_res():
     if res_all:
@@ -887,7 +900,7 @@ def game_render():
                 buy[1] = 0
                 buy[0] += 1
 
-            else: print('\033[31m' + buy[buy[0]] + '\033[0m'); move = input().split(' ')
+            else: print('\033[31m' + buy[buy[0] + pn_mode*11] + '\033[0m'); move = input().split(' ')
 
         if (move[0] == 'sell' and len(move) > 1) or move[0] == 'sa':
             if move[0] == 'sa': move = ['sell', 'all']
@@ -965,7 +978,9 @@ def game_render():
                 os.system('rm ./save.dat')
 
             if move[0] == 'number' and move[1] == 'style':
-                try: pn_mode = int(move[2])
+                try: 
+                    pn_mode = int(move[2])
+                    if pn_mode > 1: pn_mode = 1
                 except Exception: pass
         
         if len(move) >= 2:
