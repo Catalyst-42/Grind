@@ -272,7 +272,8 @@ stats = [time.time(), time.strftime('%d.%m.%Y %H:%M:%S', time.localtime()), '', 
 def draw_name(name):
     return name + ' ' * (10 - len(name)) + ':'
 
-def pn(number, recolor=0, mode=1):
+def pn(number, recolor=0, mode=0):
+    mode += pn_mode
     if not mode:
         number = int(number)
         return '{:,}'.format(number) + ' '
@@ -603,7 +604,8 @@ if os.path.exists('./save.dat'):
         if colors_open:
             for i in colors:
                 money += i['per_s'] * i['level'] * timestamp
-        
+                stats[6] += i['per_s'] * i['level'] * timestamp
+ 
             print(draw_name('Деньги'), pn(money - median) + '$\n')
         
         print(draw_name('Секунды'), pn(timestamp))
@@ -980,7 +982,7 @@ def game_render():
             if move[0] == 'number' and move[1] == 'style':
                 try: 
                     pn_mode = int(move[2])
-                    if pn_mode > 1: pn_mode = 1
+                    #if pn_mode > 1: pn_mode = 1
                 except Exception: pass
         
         if len(move) >= 2:
