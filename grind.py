@@ -86,7 +86,7 @@ level для улучшения на 1 уровень
 enter для подтверждения ввода
 
 Создал: Catalyst
-Версия: release 4.1 Number View Update & open command fix'''
+Версия: release 4.2 Polished'''
 
 res_time = {'seconds': 0,
             'minutes': 0,
@@ -280,7 +280,7 @@ def pn(number, recolor=0, mode=0):
 
     else:
         number = str(int(number))
-        scale = ['', 'k ', 'm ', 'b ', 'q ', 'Q ']
+        scale = ['', 'k ', 'm ', 'b ', 'q ', 'Q ', 'e', 'E', 'f', 'F']
         scale_point = 0
 
         for i in range(15, 0, -3):
